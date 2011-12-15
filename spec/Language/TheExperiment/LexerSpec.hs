@@ -29,9 +29,12 @@ spaceSpecs = describe "space" [
 
 lexemeSpecs :: Specs
 lexemeSpecs = describe "lexeme" [
-    it "returns the result of the passed in parser" (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "aasdf")
+    it "returns the result of the passed in parser"
+      (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "aasdf")
     -- , 
-    -- it "applies the passed in parser to the input stream and then parses zero or more spaces after, returns the value returned by the passed in parser"
-    --    (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "a   b")
+    -- it "applies the passed in parser to the input stream and then parses \
+    --    \zero or more spaces after, returns the value returned by the \
+    --    \passed in parser"
+    --   (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "a   b")
     ]
 
