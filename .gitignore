@@ -1,0 +1,11 @@
+*~
+*.swp
+*.o
+dist
+*.hi
+tags
+*.orig
+*.sublime-project
+*.sublime-workspace
+.hspecLastRun
+notes
