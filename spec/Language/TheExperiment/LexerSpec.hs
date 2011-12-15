@@ -7,34 +7,42 @@ import Test.Hspec
 
 import Language.TheExperiment.Lexer
 
-runTestParser :: Parser a -> String -> Either ParseError a
-runTestParser p s = runParser p () "HSpec tests" s
 
-parseSucceedsWith :: (Eq a) => a -> Either ParseError a -> Bool
-parseSucceedsWith x (Right y) = x == y
-parseSucceedsWith _ _ = False
+runTestParser :: Parser a -> String -> Either ParseError (a, String)
+runTestParser p s = runParser g () "HSpec tests" s
+    where
+        g = do
+           x <- p
+           State s' _ _ <- getParserState
+           return (x, s')
 
-parseFails :: Either ParseError a -> Bool
-parseFails (Left _) = True
+parseSucceedsWith :: (Eq a) => Parser a -> String -> a -> String -> Bool
+parseSucceedsWith p s er pr =  case runTestParser p s of
+    Right r | r == (er, pr) -> True
+    _                       -> False
+
+parseFails :: Parser a -> String -> Bool
+parseFails p s = case runTestParser p s of
+    Left _ -> True
+    Right _ -> False
 
 spaceSpecs :: Specs
 spaceSpecs = describe "space" [
     it "parses a space character out of the stream and returns it"
-        (parseSucceedsWith ' ' $ runTestParser space " sadf"),
+        (parseSucceedsWith space " sadf" ' ' "sadf"),
 
     it "fails when the next character in the stream is not a space"
-        (parseFails $ runTestParser space "sadf")
+        (parseFails space "sadf")
     ]
-
 
 lexemeSpecs :: Specs
 lexemeSpecs = describe "lexeme" [
-    it "returns the result of the passed in parser"
-      (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "aasdf")
-    -- , 
-    -- it "applies the passed in parser to the input stream and then parses \
-    --    \zero or more spaces after, returns the value returned by the \
-    --    \passed in parser"
-    --   (parseSucceedsWith 'a' $ runTestParser (lexeme (char 'a')) "a   b")
+    it "applies the passed in parser and returns the result" 
+      (parseSucceedsWith (lexeme (char 'a')) "aasdf" 'a' "asdf")
+    , 
+    it "applies the passed in parser to the input stream and then parses \
+       \zero or more spaces after, returns the value returned by the \
+       \passed in parser"
+      (parseSucceedsWith (lexeme (char 'a')) "a   b" 'a' "b")
     ]
 

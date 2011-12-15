@@ -10,4 +10,5 @@ space = char ' '
 lexeme :: Parser a -> Parser a
 lexeme p = do
     x <- p
+    _ <- many space
     return x
