@@ -3,9 +3,9 @@ module Language.TheExperiment.CodeGen where
 import Language.C.Syntax
 import Language.C.Pretty
 
-import Text.PrettyPrint.HughesPJ
+import Text.PrettyPrint
 
 import Language.TheExperiment.AST
 
 genExpr :: Expr -> Doc
-genExpr = undefined
+genExpr (ExprLit (LiteralInt n)) = pretty $ (CConst $ CIntConst (CInteger n DecRepr noFlags) undefined :: CExpr)
