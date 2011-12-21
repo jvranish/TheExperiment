@@ -1,4 +1,4 @@
-module LexerSpec where
+module Language.TheExperiment.LexerSpec (main) where
 
 import Text.Parsec hiding (space)
 import Text.Parsec.String
@@ -7,6 +7,10 @@ import Test.Hspec
 
 import Language.TheExperiment.Lexer
 
+main :: IO Bool
+main =  hspecB $ concat $ [ spaceSpecs
+                          , lexemeSpecs
+                          ]
 
 runTestParser :: Parser a -> String -> Either ParseError (a, String)
 runTestParser p s = runParser g () "HSpec tests" s

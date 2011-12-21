@@ -8,8 +8,12 @@ Author: John Van Enk <vanenkj@gmail.com> and Job Vranish <job.vranish@gmail.com>
 Maintainer: Job Vranish
 Stability: experimental
 Category: Language
-Cabal-Version: >= 1.6
+Cabal-Version: >= 1.9.2
 Build-Type: Simple
+
+source-repository head
+  type: git
+  location: git@gitorious.atomicobject.com:theexperiment/theexperiment.git
 
 Library
     Extensions: DeriveDataTypeable,
@@ -20,10 +24,8 @@ Library
     Build-Depends: base >= 4 && < 5,
                    transformers  >= 0.2.2.0 && < 0.3,
                    parsec >= 3.0.1 && < 3.2,
+                   pretty >= 1.0 && < 1.1,
                    language-c >= 0.4 && < 0.5,
-                   prettyclass >= 1.0 && < 1.1,
-                   QuickCheck >= 2.4 && < 2.5,
-                   hspec >= 0.9 && < 1.0,
                    containers -any
 
     Exposed-Modules:
@@ -34,3 +36,15 @@ Library
 
     ghc-options:        -Wall
     hs-source-dirs:     src
+
+Test-Suite runTests
+    type:       exitcode-stdio-1.0
+    main-is:    RunTests.hs
+    build-depends: base >=4 && <=5,
+                   transformers  >= 0.2.2.0 && < 0.3,
+                   parsec >= 3.0.1 && < 3.2,
+                   pretty >= 1.0 && < 1.1,
+                   language-c >= 0.4 && < 0.5,
+                   containers -any,
+                   hspec >= 0.9 && < 1.0
+    hs-source-dirs:     spec, src
