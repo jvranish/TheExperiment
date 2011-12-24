@@ -9,11 +9,11 @@ data Expr = Call Expr [Expr]
     deriving (Show, Eq, Ord)
 
 
+{-
 data Statement = ExprStmt Expr
                | Scope [Statement]
+               | FuncDef String [String] Statement
                | Return Expr
     deriving (Show, Eq, Ord)
 
-data TopLevel = FuncDef String [String] Statement
-    deriving (Show, Eq, Ord)
-    
+-}
