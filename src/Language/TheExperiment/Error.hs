@@ -10,7 +10,7 @@ module Language.TheExperiment.Error ( runErrorM
                                     ) where
 
 import Control.Applicative
-import Control.Monad.Trans
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 
 import Data.Either
