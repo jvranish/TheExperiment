@@ -50,3 +50,4 @@ throwFatalError d = ErrorM $ do
 addWarning :: Doc -> ErrorM ()
 addWarning d = ErrorM $ modify $ ((Right $ Warning d) :)
 
+-- #TODO maybe add a particular type of error for compiler errors (to make it easier to quickcheck that they are never generated)
