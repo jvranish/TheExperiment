@@ -1,12 +1,6 @@
 {-#Language GeneralizedNewtypeDeriving
-          , DeriveFunctor
-          , DeriveFoldable
-          , DeriveTraversable
           #-}
 module Language.TheExperiment.AST where
-
-import Data.Foldable
-import Data.Traversable
 
 import Text.Parsec.Pos
 import Text.PrettyPrint
@@ -26,7 +20,8 @@ data ParsedType = ParsedType { typePos    :: SourcePos
                              }
     deriving (Show, Eq, Ord)
 
-data Expr a = Call              { exprPos      :: SourcePos
+data NodeType a => Expr a
+            = Call              { exprPos      :: SourcePos
                                 , exprNodeData :: a
                                 , callFunc     :: Expr a
                                 , callParams   :: [Expr a]
@@ -44,9 +39,10 @@ data Expr a = Call              { exprPos      :: SourcePos
                                 , memberExpr   :: Expr a
                                 , memberName   :: String
                                 }
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+    deriving (Show, Eq, Ord)
 
-data Statement a = Assign   { stmtPos      :: SourcePos
+data NodeType a => Statement a
+                 = Assign   { stmtPos      :: SourcePos
                             , stmtNodeData :: a
                             , assignName   :: String
                             , assignExpr   :: Expr a
@@ -74,9 +70,10 @@ data Statement a = Assign   { stmtPos      :: SourcePos
                             , stmtNodeData :: a
                             , blockBody    :: ([TopLevelStmt a], [Statement a])
                             }
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+    deriving (Show, Eq, Ord)
 
-data TopLevelStmt a = VarDef   { topStmtPos      :: SourcePos
+data NodeType a => TopLevelStmt a
+                    = VarDef   { topStmtPos      :: SourcePos
                                , topStmtNodeData :: a
                                , varName         :: String
                                , varInitExpr     :: Maybe (Expr a)
@@ -90,19 +87,24 @@ data TopLevelStmt a = VarDef   { topStmtPos      :: SourcePos
                                , topStmtNodeData :: a
                                , funcName        :: String
                                , funcParams      :: [String]
-                               , funcExpr        :: Expr a
+                               , funcStmt        :: Statement a
                                }
                     | TypeDef  { topStmtPos      :: SourcePos
                                , topStmtNodeData :: a
                                , typeDefName     :: String
                                , typeDefType     :: ParsedType
                                }
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+    deriving (Show, Eq, Ord)
                     
 
-data Module a = Module [TopLevelStmt a]
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+data NodeType a => Module a = Module [TopLevelStmt a]
+    deriving (Show, Eq, Ord)
 
 
 pPrintPos :: SourcePos -> Doc 
 pPrintPos pos = text (sourceName pos) <> colon <> int (sourceLine pos) <> colon <> int (sourceColumn pos)
+
+class NodeType a where
+-- nothing, just a second step to make sure you
+-- are really intending to allow the type to be
+-- used as a NodeType.
