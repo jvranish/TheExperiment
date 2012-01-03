@@ -12,7 +12,7 @@ data Literal = StringLiteral String
              | IntegerLiteral Integer
              | HexLiteral Integer
              | OctalLiteral Integer
-             | FloatLiteral Float
+             | FloatLiteral String Double -- String is parsed representation.
     deriving (Show, Eq, Ord)
 -- #TODO replace this with something else in Type.hs?
 data ParsedType = ParsedType { typePos    :: SourcePos
