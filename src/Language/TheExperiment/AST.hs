@@ -16,7 +16,7 @@ data Literal = StringLiteral String
     deriving (Show, Eq, Ord)
 -- #TODO replace this with something else in Type.hs?
 data ParsedType = ParsedType { typePos    :: SourcePos
-                             , parsedType :: PolyType ParsedType
+                             , parsedType :: Type ParsedType
                              }
     deriving (Show, Eq, Ord)
 
@@ -108,3 +108,4 @@ class NodeType a where
 -- nothing, just a second step to make sure you
 -- are really intending to allow the type to be
 -- used as a NodeType.
+instance NodeType CodeGenType where

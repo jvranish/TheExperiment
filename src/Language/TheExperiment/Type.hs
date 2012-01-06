@@ -37,35 +37,32 @@ minValue UInt32 = 0
 minValue Int64 = -2^(63 :: Integer)
 minValue UInt64 = 0
 
-data MonoType a = TypeName String
-                | Std StdType
-                | Array a a -- first parameter should only be a type variable or a NType (type level number), eventually this would be moved to the std libs, and have a constraint on that parameter
-                | NType Integer
-                {-
-                | Pointer a
-                | AlgType [(String, a)]
-                | Array (Maybe Integer) a
-                | TCall a [a]
-                | Struct [(String, a)]
-                | Union [(String, a)]
-                | NType Integer
-                | Func [a] a
-                -}
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
-
-
-data PolyType a = MonoType (MonoType a)
-                | Var (Maybe String) [(String, a)] (Maybe [a]) -- optional name, list of record fields and their types (empty for non-structures), Just overloads
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
-
-newtype FlatMonoType = FlatMonoType (MonoType FlatMonoType)
+data CodeGenType = CTypeName String
+                 | CStd StdType
+                 | CArray Integer CodeGenType
     deriving (Show, Eq, Ord)
 
---flatType :: (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType FlatMonoType))))))))))) -> FlatMonoType
-flatType :: MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType (MonoType FlatMonoType)))))))))))))))) -> FlatMonoType
-flatType a = FlatMonoType $ (f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ f $ fmap FlatMonoType) a
-    where
-        f g = fmap (FlatMonoType . g) 
+data Type a = TypeName String
+            | Std StdType
+            | Pointer a
+            | Array a a -- first parameter should only be a type variable or a 
+                        -- NType (type level number), eventually this would be
+                        -- moved to the std libs, and have aconstraint on that
+                        -- parameter
+            | NType Integer
+            {-
+            | Pointer a
+            | AlgType [(String, a)]
+            | Array (Maybe Integer) a
+            | TCall a [a]
+            | Struct [(String, a)]
+            | Union [(String, a)]
+            | NType Integer
+            | Func [a] a
+            -}
+            -- optional name, list of record fields and their types (empty for
+            --  non-structures), Just overloads
+            | Var (Maybe String) [(String, a)] (Maybe [a]) 
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
--- x = fmap (FlatMonoType . (fmap (FlatMonoType . (fmap FlatMonoType))))
 
