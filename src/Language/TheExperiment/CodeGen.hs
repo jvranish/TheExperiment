@@ -16,7 +16,7 @@ import Language.C.Data.Position
 import Language.TheExperiment.Type
 import Language.TheExperiment.AST
 import Language.TheExperiment.Error
-
+import Language.TheExperiment.CodeGenType
 
 getNodeInfo :: SourcePos -> NodeInfo
 getNodeInfo pos = OnlyPos cPos (cPos, 0)
@@ -41,10 +41,10 @@ cBinOpTable = [ ("Builtin.addint8", CAddOp)
               , ("Builtin.addf64", CAddOp)
               ]
 
-genUnaryOp :: Expr CodeGenType -> Expr CodeGenType -> [Expr CodeGenType] -> ErrorM (Maybe CExpr)
+genUnaryOp :: Expr GenType -> Expr GenType -> [Expr GenType] -> ErrorM (Maybe CExpr)
 genUnaryOp _ _ _ = return Nothing -- #TODO not implemented yet
 
-genBinaryOp :: Expr CodeGenType -> Expr CodeGenType -> [Expr CodeGenType] -> ErrorM (Maybe CExpr)
+genBinaryOp :: Expr GenType -> Expr GenType -> [Expr GenType] -> ErrorM (Maybe CExpr)
 genBinaryOp e (Identifier { idName = name }) params = do
     case lookup name cBinOpTable of
         Just op -> case params of
@@ -58,7 +58,7 @@ genBinaryOp e (Identifier { idName = name }) params = do
         Nothing -> return Nothing
 genBinaryOp _ _ _= return Nothing
 
-genBuiltin :: Expr CodeGenType -> Expr CodeGenType -> [Expr CodeGenType] -> ErrorM (Maybe CExpr)
+genBuiltin :: Expr GenType -> Expr GenType -> [Expr GenType] -> ErrorM (Maybe CExpr)
 genBuiltin e f params = fmap msum $ sequence [genUnaryOp e f params, genBinaryOp e f params]
 
 
@@ -81,9 +81,10 @@ getIntFlags UInt64 = setFlag FlagUnsigned $ setFlag FlagLongLong noFlags
 -- #TODO add documentation about the module names
 -- #TODO we'll need to update the identifierId at some point if we want to run any analysis functions on the output
 genVar :: SourcePos -> String -> CExpr
-genVar pos name = CVar (Ident (fmap (\a -> if a == '.' then '_' else a) name) 0 (getNodeInfo pos)) (getNodeInfo pos)
+genVar pos name = CVar (genIdent pos (fmap (\a -> if a == '.' then '_' else a) name)) (getNodeInfo pos)
 
-genExpr :: Expr CodeGenType -> ErrorM CExpr
+
+genExpr :: Expr GenType -> ErrorM CExpr
 genExpr (Literal { exprPos = pos, exprNodeData = typ, literal = lit } ) = fmap CConst $ case lit of
         StringLiteral s  -> return $ CStrConst (cString s) (getNodeInfo pos)
         CharLiteral c    -> return $ CCharConst (cChar c) (getNodeInfo pos)
@@ -94,7 +95,7 @@ genExpr (Literal { exprPos = pos, exprNodeData = typ, literal = lit } ) = fmap C
     where
         genIntLiteral i repr = do
             case typ of
-              CStd (IntType t) -> return $ CIntConst (CInteger i repr (getIntFlags t)) (getNodeInfo pos)
+              GenType (CStd (IntType t)) _  -> return $ CIntConst (CInteger i repr (getIntFlags t)) (getNodeInfo pos)
               _ -> do 
                 codeGenError pos "Compiler Error: Inferred type for an integer literal was not an integer. This is a compiler bug."
                 return $ CIntConst (CInteger i repr noFlags) (getNodeInfo pos)
@@ -116,7 +117,7 @@ genExpr (Member { exprPos = pos, memberExpr = mExpr, memberName = name } ) = do
     return $ CMember mExpr' (Ident name 0 (getNodeInfo pos)) False (getNodeInfo pos)
 
 
-genStatement :: Statement CodeGenType -> ErrorM CStat
+genStatement :: Statement GenType -> ErrorM CStat
 genStatement (Assign { stmtPos = pos, assignName = a, assignExpr = b} ) = do
     let a' = genVar pos a
     b' <- genExpr b
@@ -126,6 +127,43 @@ genStatement (If { stmtPos = pos, ifCond = cond, ifThen = thenStmt, ifElse = els
     thenStmt' <- genStatement thenStmt
     elseStmt' <- mapM genStatement elseStmt
     return $ CIf cond' thenStmt' elseStmt' (getNodeInfo pos)
+
+genIdent :: SourcePos -> String -> Ident
+genIdent pos name = Ident name 0 (getNodeInfo pos)
+
+genDecl :: SourcePos -> String -> GenType -> CDecl
+genDecl pos name (GenType t derivDecls) = CDecl [CTypeSpec $ genTypeSpec pos t] [(Just $ CDeclr (Just $ genIdent pos name) (fmap (genDerivDecl pos) derivDecls) Nothing [] (getNodeInfo pos), Nothing, Nothing)] (getNodeInfo pos)
+
+genDerivDecl :: SourcePos -> GenTypeDerivDecl -> CDerivedDeclr
+genDerivDecl pos (CArrayDecl quals i) = CArrDeclr (fmap (genTypeQual pos) quals) (CArrSize False $ CConst $ CIntConst (CInteger i DecRepr noFlags) (getNodeInfo pos)) (getNodeInfo pos)
+genDerivDecl pos (CPointerDecl quals) = CPtrDeclr (fmap (genTypeQual pos) quals) (getNodeInfo pos)
+
+genTypeQual :: SourcePos -> GenTypeQualifier -> CTypeQual
+genTypeQual pos CImmutable = CConstQual (getNodeInfo pos)
+genTypeQual pos CVolatile = CVolatQual (getNodeInfo pos)
+
+
+genTypeSpec :: SourcePos -> GenBasicType -> CTypeSpec
+genTypeSpec pos (CTypeName name) = CTypeDef (genIdent pos name) (getNodeInfo pos)
+genTypeSpec pos (CStd stdType) = genStdTypeSpec pos stdType
+
+genStdTypeSpec :: SourcePos -> StdType -> CTypeSpec
+genStdTypeSpec pos Void = CVoidType (getNodeInfo pos)
+genStdTypeSpec pos Char8 = CCharType (getNodeInfo pos)
+genStdTypeSpec pos (IntType t) = genIntTypeSpec pos t
+genStdTypeSpec pos SBool = CBoolType (getNodeInfo pos)
+genStdTypeSpec pos F32 = CFloatType (getNodeInfo pos)
+genStdTypeSpec pos F64 = CDoubleType (getNodeInfo pos)
+
+genIntTypeSpec :: SourcePos -> IntType -> CTypeSpec
+genIntTypeSpec pos Int8 = CTypeDef (genIdent pos "int8_t") (getNodeInfo pos)
+genIntTypeSpec pos UInt8 = CTypeDef (genIdent pos "uint8_t") (getNodeInfo pos)
+genIntTypeSpec pos Int16 = CTypeDef (genIdent pos "int16_t") (getNodeInfo pos)
+genIntTypeSpec pos UInt16 = CTypeDef (genIdent pos "uint16_t") (getNodeInfo pos)
+genIntTypeSpec pos Int32 = CTypeDef (genIdent pos "int32_t") (getNodeInfo pos)
+genIntTypeSpec pos UInt32 = CTypeDef (genIdent pos "uint32_t") (getNodeInfo pos)
+genIntTypeSpec pos Int64 = CTypeDef (genIdent pos "int64_t") (getNodeInfo pos)
+genIntTypeSpec pos UInt64 = CTypeDef (genIdent pos "uint64_t") (getNodeInfo pos)
 
 
 {-

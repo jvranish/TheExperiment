@@ -6,6 +6,8 @@ import Text.Parsec.Pos
 import Text.PrettyPrint
 
 import Language.TheExperiment.Type
+import Language.TheExperiment.CodeGenType -- Only used for type constraint not
+                                          --  actually needed
 
 data Literal = StringLiteral String
              | CharLiteral Char
@@ -108,4 +110,4 @@ class NodeType a where
 -- nothing, just a second step to make sure you
 -- are really intending to allow the type to be
 -- used as a NodeType.
-instance NodeType CodeGenType where
+instance NodeType GenType where

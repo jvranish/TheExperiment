@@ -34,6 +34,7 @@ Library
         Language.TheExperiment.Lexer
         Language.TheExperiment.AST
         Language.TheExperiment.CodeGen
+        Language.TheExperiment.CodeGenType
 
     ghc-options:        -Wall
     hs-source-dirs:     src
