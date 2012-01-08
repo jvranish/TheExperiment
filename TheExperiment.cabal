@@ -33,6 +33,7 @@ Library
         Language.TheExperiment.Parser
         Language.TheExperiment.Lexer
         Language.TheExperiment.AST
+        Language.TheExperiment.Builtin
         Language.TheExperiment.CodeGen
         Language.TheExperiment.CodeGenType
 

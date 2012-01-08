@@ -45,6 +45,7 @@ data Type a = TypeName String
                         -- moved to the std libs, and have aconstraint on that
                         -- parameter
             | NType Integer
+            | Func [a] a
             {-
             | Pointer a
             | 
@@ -61,6 +62,7 @@ data Type a = TypeName String
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data FlatType = FlatType (Type FlatType)
+    deriving (Show, Eq, Ord)
 
 -- the type variable 'a' is meant to be either a TypeRef or some other version
 -- of Type (like say data FlatType = FlatType (Type FlatType))
