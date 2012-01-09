@@ -10,6 +10,7 @@ import Language.TheExperiment.Type
 data Literal = StringLiteral String
              | CharLiteral Char
              | IntegerLiteral Integer
+             | BinLiteral Integer
              | HexLiteral Integer
              | OctalLiteral Integer
              | FloatLiteral String Double -- String is parsed representation.
