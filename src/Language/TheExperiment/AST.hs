@@ -6,6 +6,8 @@ import Text.Parsec.Pos
 import Text.PrettyPrint
 
 import Language.TheExperiment.Type
+import Language.TheExperiment.CodeGenType -- Only used for type constraint not
+                                          --  actually needed
 
 data Literal = StringLiteral String
              | CharLiteral Char
@@ -73,32 +75,34 @@ data NodeType a => Statement a
                    }
     deriving (Show, Eq, Ord)
 
+data NodeType a => VarDef a = VarDef { varDefPos      :: SourcePos -- this pos
+                                      -- is the position of the var name
+                                     , varDefNodeData :: a
+                                     , varName        :: String
+                                     }
+    deriving (Show, Eq, Ord)
+
 data NodeType a => TopLevelStmt a
-        = VarDef   { topStmtPos      :: SourcePos
-                   , topStmtNodeData :: a
-                   , varName         :: String
-                   , varInitExpr     :: Maybe (Expr a)
-                   }
-        | ConstDef { topStmtPos      :: SourcePos
-                   , topStmtNodeData :: a
-                   , constName       :: String
-                   , constExpr       :: Expr a
-                   }
-        | FuncDef  { topStmtPos      :: SourcePos
-                   , topStmtNodeData :: a
-                   , funcName        :: String
-                   , funcParams      :: [String]
-                   , funcStmt        :: Statement a
-                   }
-        | TypeDef  { topStmtPos      :: SourcePos
-                   , topStmtNodeData :: a
-                   , typeDefName     :: String
-                   , typeDefType     :: ParsedType
-                   }
+        = TopVarDef { topStmtPos      :: SourcePos
+                    , topStmtNodeData :: a
+                    , varDef          :: VarDef a
+                    -- , varInitExpr     :: Maybe (Expr a)
+                    }
+        | FuncDef   { topStmtPos      :: SourcePos
+                    , topStmtNodeData :: a
+                    , funcName        :: String
+                    , funcParams      :: [VarDef a]
+                    , funcStmt        :: Statement a
+                    }
+        | TypeDef   { topStmtPos      :: SourcePos
+                    , topStmtNodeData :: a
+                    , typeDefName     :: String
+                    , typeDefType     :: ParsedType
+                    }
     deriving (Show, Eq, Ord)
                     
 
-data NodeType a => Module a = Module [TopLevelStmt a]
+data NodeType a => Module a = Module SourcePos [TopLevelStmt a]
     deriving (Show, Eq, Ord)
 
 
@@ -109,4 +113,4 @@ class NodeType a where
 -- nothing, just a second step to make sure you
 -- are really intending to allow the type to be
 -- used as a NodeType.
-instance NodeType CodeGenType where
+instance NodeType GenType where

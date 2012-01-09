@@ -7,7 +7,7 @@ module Language.TheExperiment.Type where
 import Data.Foldable
 import Data.Traversable
 
-data StdType = Char8 | Char16 | IntType IntType | SBool | F32 | F64
+data StdType = Void | Char8 | IntType IntType | SBool | F32 | F64
     deriving (Show, Eq, Ord)
 
 data IntType = Int8 | UInt8 | Int16 | UInt16 | Int32 | UInt32 | Int64 | UInt64
@@ -37,11 +37,6 @@ minValue UInt32 = 0
 minValue Int64 = -2^(63 :: Integer)
 minValue UInt64 = 0
 
-data CodeGenType = CTypeName String
-                 | CStd StdType
-                 | CArray Integer CodeGenType
-    deriving (Show, Eq, Ord)
-
 data Type a = TypeName String
             | Std StdType
             | Pointer a
@@ -50,9 +45,10 @@ data Type a = TypeName String
                         -- moved to the std libs, and have aconstraint on that
                         -- parameter
             | NType Integer
+            | Func [a] a
             {-
             | Pointer a
-            | AlgType [(String, a)]
+            | 
             | Array (Maybe Integer) a
             | TCall a [a]
             | Struct [(String, a)]
@@ -64,5 +60,15 @@ data Type a = TypeName String
             --  non-structures), Just overloads
             | Var (Maybe String) [(String, a)] (Maybe [a]) 
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+data FlatType = FlatType (Type FlatType)
+    deriving (Show, Eq, Ord)
+
+-- the type variable 'a' is meant to be either a TypeRef or some other version
+-- of Type (like say data FlatType = FlatType (Type FlatType))
+data TypeDef a = SimpleType a
+               | AlgType [(String, a)]
+               | Struct [(String, a)]
+               | Union [(String, a)]
 
 
