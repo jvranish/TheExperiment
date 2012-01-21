@@ -9,3 +9,4 @@ tags
 *.sublime-workspace
 .hspecLastRun
 notes
+cabal-dev
