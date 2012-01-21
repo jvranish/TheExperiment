@@ -273,13 +273,7 @@ genIntTypeSpec pos UInt64 = CTypeDef (genIdent pos "uint64_t") (getNodeInfo pos)
 
 
 {-
-genBuildinFunc name params = case name of
-    "add8" -> genBinOp 
-operators
-arithmetic
-bitwise -- 
-logic -- verify boolean type
-func call
+
 cast
 member
 index
@@ -295,16 +289,6 @@ import list, export list
 modules
 gen prototypes
 gen typedefs
-
-Builtin.adduint8
-Builtin.adduint16
-Builtin.adduint32
-Builtin.adduint64
-
-Builtin.addint8
-Builtin.addint16
-Builtin.addint32
-Builtin.addint64
 
 specialize - AST with flat types, no polymorphics
 

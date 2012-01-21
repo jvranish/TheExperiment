@@ -6,6 +6,7 @@ module Language.TheExperiment.Type where
 
 import Data.Foldable
 import Data.Traversable
+import qualified Data.Map as Map
 
 data StdType = Void | Char8 | IntType IntType | SBool | F32 | F64
     deriving (Show, Eq, Ord)
@@ -40,10 +41,10 @@ minValue UInt64 = 0
 data Type a = TypeName String
             | Std StdType
             | Pointer a
-            | Array a a -- first parameter should only be a type variable or a 
-                        -- NType (type level number), eventually this would be
-                        -- moved to the std libs, and have aconstraint on that
-                        -- parameter
+            | Array a a -- first parameter should only be a type variable or 
+                        -- an NType (type level number), eventually this would 
+                        -- be moved to the std libs, and have a constraint on
+                        -- that parameter
             | NType Integer
             | Func [a] a
             {-
@@ -58,7 +59,17 @@ data Type a = TypeName String
             -}
             -- optional name, list of record fields and their types (empty for
             --  non-structures), Just overloads
-            | Var (Maybe String) [(String, a)] (Maybe [a]) 
+            | Var (Maybe String) {- (RecFields a) -} (Overloads a)
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+data RecFields a = Fields (Map.Map String a)
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+noRecFields :: RecFields a
+noRecFields = Fields Map.empty
+
+data Overloads a = NotOverloaded
+                 | Overloads a [a] -- current best guess, potential types
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data FlatType = FlatType (Type FlatType)

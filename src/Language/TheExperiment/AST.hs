@@ -1,9 +1,15 @@
 {-#Language GeneralizedNewtypeDeriving
+          , DeriveFunctor
+          , DeriveFoldable
+          , DeriveTraversable
           #-}
 module Language.TheExperiment.AST where
 
 import Text.Parsec.Pos
 import Text.PrettyPrint
+
+import Data.Foldable
+import Data.Traversable
 
 import Language.TheExperiment.Type
 import Language.TheExperiment.CodeGenType -- Only used for type constraint not
@@ -23,7 +29,7 @@ data ParsedType = ParsedType { typePos    :: SourcePos
                              }
     deriving (Show, Eq, Ord)
 
-data NodeType a => Expr a
+data Expr a
         = Call       { exprPos      :: SourcePos
                      , exprNodeData :: a
                      , callFunc     :: Expr a
@@ -42,9 +48,9 @@ data NodeType a => Expr a
                      , memberExpr   :: Expr a
                      , memberName   :: String
                      }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-data NodeType a => Statement a
+data Statement a
         = Assign   { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , assignName   :: String
@@ -73,16 +79,17 @@ data NodeType a => Statement a
                    , stmtNodeData :: a
                    , blockBody    :: ([TopLevelStmt a], [Statement a])
                    }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-data NodeType a => VarDef a = VarDef { varDefPos      :: SourcePos -- this pos
-                                      -- is the position of the var name
-                                     , varDefNodeData :: a
-                                     , varName        :: String
-                                     }
-    deriving (Show, Eq, Ord)
+data VarDef a 
+        = VarDef { varDefPos      :: SourcePos -- this pos
+                  -- is the position of the var name
+                 , varDefNodeData :: a
+                 , varName        :: String
+                 }
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-data NodeType a => TopLevelStmt a
+data TopLevelStmt a
         = TopVarDef { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
                     , varDef          :: VarDef a
@@ -99,11 +106,11 @@ data NodeType a => TopLevelStmt a
                     , typeDefName     :: String
                     , typeDefType     :: ParsedType
                     }
-    deriving (Show, Eq, Ord)
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
                     
 
-data NodeType a => Module a = Module SourcePos [TopLevelStmt a]
-    deriving (Show, Eq, Ord)
+data Module a = Module SourcePos [TopLevelStmt a]
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 
 pPrintPos :: SourcePos -> Doc 
