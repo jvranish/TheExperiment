@@ -68,12 +68,22 @@ aDecLiteral = do
   lit <- many1 $ oneOf ['0'..'9']
   return $ IntegerLiteral $ readStdInt 10 lit
 
+aFloatLiteral :: Parser Literal
+aFloatLiteral = do
+  whole <- many1 $ oneOf ['0'..'9']
+  d     <- char '.'
+  frac  <- many1 $ oneOf ['0'..'9']
+
+  let str = whole ++ (d : frac)
+  return $ FloatLiteral str (read str)
+
 aLiteral :: Parser Literal
 aLiteral = try aStringLiteral
        <|> try aCharLiteral
        <|> try aBinLiteral
        <|> try aHexLiteral
        <|> try aOctalLiteral
+       <|> try aFloatLiteral
        <|>     aDecLiteral
 
 parseExpr :: String -> String
