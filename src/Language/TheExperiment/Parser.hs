@@ -47,6 +47,15 @@ aCharLiteral = do
 
   return $ CharLiteral c
 
+aFloatLiteral :: Parser Literal
+aFloatLiteral = do
+  whole <- many1 $ oneOf ['0'..'9']
+  d     <- char '.'
+  frac  <- many1 $ oneOf ['0'..'9']
+
+  let str = whole ++ (d : frac)
+  return $ FloatLiteral str (read str)
+
 aNumericLiteral :: Char -> [Char] -> (Integer -> Literal) -> Parser Literal
 aNumericLiteral prefix digits cons = do
   _ <- char '0'
@@ -68,26 +77,18 @@ aDecLiteral = do
   lit <- many1 $ oneOf ['0'..'9']
   return $ IntegerLiteral $ readStdInt 10 lit
 
-aFloatLiteral :: Parser Literal
-aFloatLiteral = do
-  whole <- many1 $ oneOf ['0'..'9']
-  d     <- char '.'
-  frac  <- many1 $ oneOf ['0'..'9']
-
-  let str = whole ++ (d : frac)
-  return $ FloatLiteral str (read str)
 
 aLiteral :: Parser Literal
 aLiteral = try aStringLiteral
        <|> try aCharLiteral
+       <|> try aFloatLiteral
        <|> try aBinLiteral
        <|> try aHexLiteral
        <|> try aOctalLiteral
-       <|> try aFloatLiteral
        <|>     aDecLiteral
 
-parseExpr :: String -> String
-parseExpr input = case parse aLiteral "lisp" input of
-                    Left err -> "No match: " ++ show err
-                    Right val -> show val
+parseExpr :: String -> Literal
+parseExpr input = case parse aLiteral "TheExperiment" input of
+                    Left err   -> error $ "Failed to parse the string \"" ++ input ++ "\": " ++ show err
+                    Right good -> good
 
