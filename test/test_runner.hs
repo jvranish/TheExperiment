@@ -13,11 +13,11 @@ show_test (comparison, input, expected, actual) =
 
 main :: IO ()
 main = do
-  let the_fails = failures ETests.Parser.test
+  let the_fails = failures ETests.Parser.parser_test
 
   case length the_fails of
      0 -> putStrLn "No fails! :D"
      x -> do
       putStrLn $ (show x) ++ " fails. :("
-      putStrLn $ unlines $ map show_test $ ETests.Parser.test
+      putStrLn $ unlines $ map show_test $ the_fails
 
