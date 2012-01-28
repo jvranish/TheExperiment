@@ -33,11 +33,12 @@ parseFails p s = case runTestParser p s of
 
 parser_test :: [(Bool, String, String)]
 parser_test =
-  concat [
-    map check literal_tests,
-    map check parse_tests
-  ]
+  concat [ map check literal_tests
+         , map check parse_tests
+         , map check std_type_tests
+         , map check type_tests
 
+         ]
 literal_tests :: [ParseTest Literal]
 literal_tests = [ expect "\"Hello World\"" (StringLiteral "Hello World") ""
                 , expect "\'C\'"           (CharLiteral 'C') ""
@@ -63,8 +64,31 @@ parse_tests =
   , Failure "Int Types" aIntType "Int8a"
   ]
   where expect = ExpectSuccess "Int Types" aIntType
+  
+std_type_tests :: [ParseTest StdType]
+std_type_tests = 
+  [ expect "Void" Void ""
+  , expect "Char8" Char8 ""
+  , expect "Int32" (IntType Int32) ""
+  , expect "Bool" SBool ""
+  , expect "F32 " F32 " "
+  , expect "F64" F64 ""
+  , expect "Void(" Void "("
+  , Failure "Standard types" aStdType "Voids"
+  , Failure "Standard types" aStdType "Char88"
+  ]
+  where expect = ExpectSuccess "Std Types" aStdType
+
+--type_tests :: (Show a, Eq a) => [ParseTest (Type a)]
+type_tests :: [ParseTest (Type ())]
+type_tests = 
+  [ expect "Void" (Std Void) ""
+  , expect "Purple" (TypeName "Purple") ""
+  ]
+  where expect = ExpectSuccess "Types" aType
+
 
 check :: (Eq a, Show a) => ParseTest a -> (Bool, String, String)
-check (ExpectSuccess parseName aParser input result leftOver) = (parseSucceedsWith aParser input result leftOver, parseName, input ++ " expected, got " ++ show result)
+check (ExpectSuccess parseName aParser input result leftOver) = (parseSucceedsWith aParser input result leftOver, parseName, (show input) ++ " expected to parse to <" ++ show result ++ ">")
 check (Failure parseName aParser input) = ( parseFails aParser input, parseName, input)
 

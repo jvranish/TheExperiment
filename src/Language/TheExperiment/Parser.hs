@@ -20,6 +20,7 @@ import Text.Parsec hiding (spaces)
 import Text.Parsec.String
 import Data.Maybe
 import Numeric
+import Control.Monad
 
 import Language.TheExperiment.AST
 import Language.TheExperiment.Type
@@ -89,12 +90,9 @@ aLiteral = try aStringLiteral
        <|> try aOctalLiteral
        <|>     aDecLiteral
 
-aTypeName :: Parser ParsedType
-aTypeName = undefined
-
 keyword :: String -> Parser ()
 keyword s = try $ do
-  string s
+  _ <- string s
   notFollowedBy alphaNum
 
 aIntType :: Parser IntType
@@ -116,7 +114,33 @@ aIntType = (try aInt8 )
     aUInt32 = keyword "UInt32" >> return UInt32
     aUInt64 = keyword "UInt64" >> return UInt64
 
+aStdType :: Parser StdType
+aStdType = (try aVoid)
+       <|> (try aChar8)
+       <|> (try aStdIntType)
+       <|> (try aBool)
+       <|> (try aF32)
+       <|> (try aF64)
+  where
+    aVoid = keyword "Void" >> return Void
+    aChar8 = keyword "Char8" >> return Char8
+    aStdIntType = liftM IntType aIntType
+    aBool = keyword "Bool" >> return SBool
+    aF32 = keyword "F32" >> return F32
+    aF64 = keyword "F64" >> return F64
 
+aType :: Parser (Type a)
+aType = (try aTypeStd)
+    <|> (try aTypeName)
+  where 
+    aTypeStd = liftM Std aStdType
+    aTypeName = do
+      firstLetter <- oneOf ['A'..'Z']
+      rest <- many alphaNum
+      return $ TypeName $ firstLetter : rest
+
+
+          
 
 parseExpr :: String -> Literal
 parseExpr input = case parse aLiteral "TheExperiment" input of
