@@ -16,11 +16,13 @@ module Language.TheExperiment.Parser where
  -
  -}
 
-import Text.ParserCombinators.Parsec hiding (spaces)
+import Text.Parsec hiding (spaces)
+import Text.Parsec.String
 import Data.Maybe
 import Numeric
 
 import Language.TheExperiment.AST
+import Language.TheExperiment.Type
 
 readStdInt :: Num a => a -> String -> a
 readStdInt base str = val
@@ -86,6 +88,27 @@ aLiteral = try aStringLiteral
        <|> try aHexLiteral
        <|> try aOctalLiteral
        <|>     aDecLiteral
+
+aTypeName :: Parser ParsedType
+aTypeName = undefined
+
+keyword :: String -> Parser ()
+keyword s = try $ do
+  string s
+  notFollowedBy alphaNum
+
+aIntType :: Parser IntType
+aIntType = (try aInt8 )
+       <|> (try aInt16)
+       <|> (try aInt32)
+       <|> (    aInt64)
+  where
+    aInt8  = string "Int8" >> return Int8
+    aInt16 = string "Int16" >> return Int16
+    aInt32 = string "Int32" >> return Int32
+    aInt64 = string "Int64" >> return Int64
+
+
 
 parseExpr :: String -> Literal
 parseExpr input = case parse aLiteral "TheExperiment" input of

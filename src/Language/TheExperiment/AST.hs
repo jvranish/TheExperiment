@@ -122,4 +122,4 @@ class NodeType a where
 -- nothing, just a second step to make sure you
 -- are really intending to allow the type to be
 -- used as a NodeType.
-instance NodeType GenType where
+-- instance NodeType GenType where

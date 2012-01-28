@@ -2,14 +2,14 @@ module Main (main) where
 
 import qualified ETests.Parser
 
-failures :: [(Bool,a,b,c)] -> [(Bool,a,b,c)]
-failures = filter (not . (\(x,_,_,_) -> x))
+failures :: [(Bool,String,String)] -> [(Bool,String,String)]
+failures = filter (not . (\(x,_,_) -> x))
 
-show_test :: (Show a, Show b) => (Bool, String, a, b) -> String
-show_test (comparison, input, expected, actual) =
+show_test :: (Bool, String, String) -> String
+show_test (comparison, parseName, message) =
   case comparison of
-    True  -> "  -- " ++ input ++ " -> " ++ show actual
-    False -> "F -- " ++ input ++ " :: " ++ show expected ++ " =/= " ++ show actual
+    True  -> "  -- " ++ parseName ++ " -> " ++ message
+    False -> "F -- " ++ parseName ++ " :: " ++ message
 
 main :: IO ()
 main = do
@@ -20,4 +20,3 @@ main = do
      x -> do
       putStrLn $ (show x) ++ " fails. :("
       putStrLn $ unlines $ map show_test $ the_fails
-

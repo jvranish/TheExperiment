@@ -81,5 +81,5 @@ data TypeDef a = SimpleType a
                | AlgType [(String, a)]
                | Struct [(String, a)]
                | Union [(String, a)]
-
+    deriving (Show, Eq, Ord)
 
