@@ -12,7 +12,7 @@ import Data.Foldable
 import Data.Traversable
 
 import Language.TheExperiment.Type
-import Language.TheExperiment.CodeGenType -- Only used for type constraint not
+-- import Language.TheExperiment.CodeGenType -- Only used for type constraint not
                                           --  actually needed
 
 data Literal = StringLiteral String
@@ -43,11 +43,13 @@ data Expr a
                      , exprNodeData :: a
                      , literal      :: Literal
                      }
+        {-
         | Member     { exprPos      :: SourcePos
                      , exprNodeData :: a
                      , memberExpr   :: Expr a
                      , memberName   :: String
                      }
+        -}
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data Statement a
@@ -104,7 +106,7 @@ data TopLevelStmt a
         | TypeDef   { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
                     , typeDefName     :: String
-                    , typeDefType     :: ParsedType
+                    , typeDefType     :: TypeDef ParsedType
                     }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
                     
