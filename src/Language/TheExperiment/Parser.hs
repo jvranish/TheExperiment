@@ -101,12 +101,20 @@ aIntType :: Parser IntType
 aIntType = (try aInt8 )
        <|> (try aInt16)
        <|> (try aInt32)
-       <|> (    aInt64)
+       <|> (try aInt64)
+       <|> (try aUInt8 )
+       <|> (try aUInt16)
+       <|> (try aUInt32)
+       <|> (    aUInt64)
   where
-    aInt8  = string "Int8" >> return Int8
-    aInt16 = string "Int16" >> return Int16
-    aInt32 = string "Int32" >> return Int32
-    aInt64 = string "Int64" >> return Int64
+    aInt8   = keyword "Int8" >> return Int8
+    aInt16  = keyword "Int16" >> return Int16
+    aInt32  = keyword "Int32" >> return Int32
+    aInt64  = keyword "Int64" >> return Int64
+    aUInt8  = keyword "UInt8" >> return UInt8
+    aUInt16 = keyword "UInt16" >> return UInt16
+    aUInt32 = keyword "UInt32" >> return UInt32
+    aUInt64 = keyword "UInt64" >> return UInt64
 
 
 

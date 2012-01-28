@@ -54,6 +54,11 @@ parse_tests =
   , expect "Int32" Int32 ""
   , expect "Int64" Int64 ""
   , expect "Int8 " Int8 " "
+  , expect "UInt8" UInt8 ""
+  , expect "UInt16" UInt16 ""
+  , expect "UInt32" UInt32 ""
+  , expect "UInt64" UInt64 ""
+  , expect "UInt8 " UInt8 " "
   , expect "Int8(" Int8 "("
   , Failure "Int Types" aIntType "Int8a"
   ]
@@ -61,5 +66,5 @@ parse_tests =
 
 check :: (Eq a, Show a) => ParseTest a -> (Bool, String, String)
 check (ExpectSuccess parseName aParser input result leftOver) = (parseSucceedsWith aParser input result leftOver, parseName, input ++ " expected, got " ++ show result)
-check (Failure parseName aParser input) = (not $ parseFails aParser input, parseName, input)
+check (Failure parseName aParser input) = ( parseFails aParser input, parseName, input)
 
