@@ -1,10 +1,10 @@
-module ETests.Parser where
+module ETests.Parser (parser_test) where
 
 import Language.TheExperiment.AST
 import Language.TheExperiment.Parser
 
-test :: [(Bool, String, Literal, Literal)]
-test = do
+parser_test :: [(Bool, String, Literal, Literal)]
+parser_test = do
   map check parse_tests
 
 parse_tests :: [(String, Literal)]
