@@ -10,17 +10,16 @@ Ptr a -> a
 Can't return a ref to stack variables defined on this stack.
 
 
-data TypeVariable
-	TypeVariable String
-
 data Type
 	CompositeType String [Type]
+  KindedType KindedType
 	TypeVariable TypeVariable
 	NumericType Int
-	Structure [(String, Type)]
+	Structure String [(String, Type)]
   Function [Type] Type
 
 KindedType
 	KindedType [TypeVariable] Type
 
-a -> Int
+data TypeVariable
+	TypeVariable String
