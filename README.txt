@@ -16,8 +16,9 @@ data TypeVariable
 data Type
 	CompositeType String [Type]
 	TypeVariable TypeVariable
-	TypeNumber Int
-	StructType [(String, Type)]
+	NumericType Int
+	Structure [(String, Type)]
+  Function [Type] Type
 
 KindedType
 	KindedType [TypeVariable] Type
