@@ -23,3 +23,11 @@ KindedType
 
 data TypeVariable
 	TypeVariable String
+
+-- Assignment
+
+x = 5 // instantiate
+x = 6 // reassign
+y = ref(x) // instantiate reference to x
+y := 9 // update the thing y references to 9
+       // (:=) is a function (Ref a) -> a -> (Ref a)
