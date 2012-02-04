@@ -27,6 +27,7 @@ import Control.Monad
 
 import Language.TheExperiment.Type
 import Language.TheExperiment.Parser.Literals
+import Language.TheExperiment.Parser.Types
 
 keyword :: String -> Parser ()
 keyword s = try $ do
