@@ -1,15 +1,16 @@
 {-#Language GeneralizedNewtypeDeriving #-}
-module Language.TheExperiment.Error ( runErrorM
-                                    , ErrorM (..)
-                                    , Error (..)
-                                    , Warning (..)
-                                    , Errors
-                                    , addError
-                                    , throwFatalError
-                                    , addWarning
-                                    ) where
+module Control.Monad.ErrorM ( runErrorM
+                            , ErrorM (..)
+                            , Error (..)
+                            , Warning (..)
+                            , Errors
+                            , addError
+                            , throwFatalError
+                            , addWarning
+                            ) where
 
 import Control.Applicative
+import Control.Monad.Fix
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 
@@ -25,7 +26,7 @@ data Error = Error Doc
 type Errors = [Either Error Warning]
 
 newtype ErrorM a = ErrorM (StateT Errors (Either Errors) a)
-    deriving (Monad, Applicative, Functor)
+    deriving (Monad, Applicative, Functor, MonadFix)
 
 
 runErrorM :: ErrorM a -> Either [Either Error Warning] ([Warning], a)

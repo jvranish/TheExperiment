@@ -69,7 +69,7 @@ noRecFields :: RecFields a
 noRecFields = Fields Map.empty
 
 data Overloads a = NotOverloaded
-                 | Overloads a [a] -- current best guess, potential types
+                 | Overloads [a] -- potential types
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data FlatType = FlatType (Type FlatType)

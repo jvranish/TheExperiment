@@ -113,6 +113,7 @@ genExpr e@(Call { exprPos    = pos
         Nothing -> CCall (genExpr f) (fmap genExpr params) (getNodeInfo pos)
 
 -- #TODO decide how to handle pointer member references
+{-
 genExpr (Member { exprPos    = pos
                 , memberExpr = mExpr
                 , memberName = name } ) = 
@@ -121,7 +122,7 @@ genExpr (Member { exprPos    = pos
         (Ident name 0 (getNodeInfo pos))
         False
         (getNodeInfo pos)
-
+-}
 genStatement :: Statement GenType -> CStat
 genStatement (Assign { stmtPos    = pos
                      , assignName = a

@@ -101,6 +101,7 @@ data TopLevelStmt a
                     , topStmtNodeData :: a
                     , funcName        :: String
                     , funcParams      :: [VarDef a]
+                    , funcRet         :: VarDef a
                     , funcStmt        :: Statement a
                     }
         | TypeDef   { topStmtPos      :: SourcePos

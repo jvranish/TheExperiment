@@ -1,4 +1,4 @@
-module Misc where
+module Language.TheExperiment.Misc where
 
 import Control.Monad hiding (mapM)
 
