@@ -80,3 +80,8 @@ aTypeVariable = lexeme $ do
 
 -- aTypeFunction :: Parser ParsedType
 -- (a, b) -> c
+--
+-- Foo (a, b -> c) Int
+-- foo :: a, b -> c
+--
+-- Foo (a, b -> c) Int
