@@ -55,15 +55,26 @@ literal_tests = [ expect "\"Hello World\"" (StringLiteral "Hello World") ""
 
 parse_tests :: [ParseTest ParsedType]
 parse_tests =
-    [ expect "Foo" expectedName_Foo  ""
-    , expect "a"   expectedTypeVar_a ""
+    [ expect "Foo"     expectedName_Foo  ""
+    , expect "(Foo)"   expectedName_Foo  ""
+    , expect "a"       expectedTypeVar_a ""
+    , expect "Bar a"   expectedTypeCall_Bar_a ""
+    , expect "(Bar b)" expectedTypeCall_ParenBar_b ""
     ]
   where
     expect = ExpectSuccess "ParsedType" aType
     pos = initialPos testSource
 
-    expectedName_Foo  = (TypeName     { typeName     = "Foo", typePos = pos } )
-    expectedTypeVar_a = (TypeVariable { typeVariable = "a",   typePos = pos } )
+    expectedName_Foo       = (TypeName     { typeName     = "Foo", typePos = pos } )
+    expectedTypeVar_a      = (TypeVariable { typeVariable = "a",   typePos = pos } )
+    expectedTypeCall_Bar_a = (TypeCall     {
+                                typeFunction = (TypeName { typeName = "Bar", typePos = pos }),
+                                typeParams = [ (TypeVariable { typeVariable = "a", typePos = pos }) ],
+                                typePos = pos})
+    expectedTypeCall_ParenBar_b = (TypeCall     {
+                                    typeFunction = (TypeName { typeName = "Bar", typePos = pos }),
+                                    typeParams = [ (TypeVariable { typeVariable = "b", typePos = pos }) ],
+                                    typePos = pos})
 
 -- parse_tests :: [ParseTest IntType]
 -- parse_tests = 

@@ -77,3 +77,6 @@ aTypeVariable = lexeme $ do
   firstLetter <- oneOf ['a'..'z']
   rest <- many alphaNum
   return $ TypeVariable { typePos = pos, typeVariable = firstLetter : rest }
+
+-- aTypeFunction :: Parser ParsedType
+-- (a, b) -> c
