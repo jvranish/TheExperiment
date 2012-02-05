@@ -1,4 +1,5 @@
 let g:hasktag_dir_list = ["src", "test"]
+let g:vim_ignore = ["cabal-dev", "dist"]
 
 function! RegenHaskTags()
   let dir_list = join(g:hasktag_dir_list)
