@@ -4,6 +4,7 @@ module Language.TheExperiment.Parser.Types
 
 import Text.Parsec hiding (spaces)
 import Text.Parsec.String
+import Text.Parsec.Char
 
 import Language.TheExperiment.AST (ParsedType(..))
 
@@ -38,20 +39,41 @@ import Language.TheExperiment.AST (ParsedType(..))
 --     b :: {x, y}
 --     c
 
--- HAMMER OF CONFORMITY!!!!!
+lexeme :: Parser a -> Parser a
+lexeme p = do
+  a <- p
+  spaces
+  return a
+ 
+
+paren :: Parser a -> Parser a
+paren p = between (lexeme $ char '(') (lexeme $ char ')') p
+
+aTypeTerm :: Parser ParsedType
+aTypeTerm = aTypeName <|> aTypeVariable <|> paren aType
+
+aType :: Parser ParsedType
+aType = do
+    pos         <- getPosition
+    typeFunc    <- aTypeTerm
+    typeParams' <- many aTypeTerm
+    return $ case typeParams' of
+               [] -> typeFunc
+               _  -> TypeCall { typePos      = pos
+                              , typeFunction = typeFunc
+                              , typeParams   = typeParams'
+                              }
+
 aTypeName :: Parser ParsedType
-aTypeName = do
+aTypeName = lexeme $ do
   pos <- getPosition
-  firstLetter <- oneOf ['A'..'Z']
+  firstLetter <- oneOf ['A'..'Z'] -- HAMMER OF CONFORMITY!!!!!
   rest <- many alphaNum
   return $ TypeName { typePos = pos, typeName = firstLetter : rest }
 
 aTypeVariable :: Parser ParsedType
-aTypeVariable = do
+aTypeVariable = lexeme $ do
   pos <- getPosition
   firstLetter <- oneOf ['a'..'z']
   rest <- many alphaNum
   return $ TypeVariable { typePos = pos, typeVariable = firstLetter : rest }
-
-aType :: Parser ParsedType
-aType = aTypeName <|> aTypeVariable
