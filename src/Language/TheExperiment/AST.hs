@@ -24,10 +24,26 @@ data Literal = StringLiteral String
              | FloatLiteral String Double -- String is parsed representation.
     deriving (Show, Eq, Ord)
 -- #TODO replace this with something else in Type.hs?
-data ParsedType = ParsedType { typePos    :: SourcePos
-                             , parsedType :: Type ParsedType
-                             }
-    deriving (Show, Eq, Ord)
+
+data ParsedType = TypeName   { -- Int, Var, Foo, Void
+                  typePos      :: SourcePos,
+                  typeName     :: String
+                } |
+                TypeVariable { -- a, b, c, d, bees
+                  typePos      :: SourcePos,
+                  typeVariable :: String
+                } |
+                TypeCall     { -- Foo a Int, Foo a b, Foo (Foo Var)
+                  typePos      :: SourcePos,
+                  typeFunction :: ParsedType,
+                  typeParams   :: [ParsedType]
+                } |
+                Function     { -- (a, b) -> c
+                  typePos      :: SourcePos,
+                  argTypes     :: [ParsedType],
+                  returnType   :: ParsedType
+                }
+  deriving (Show, Eq, Ord)
 
 data Expr a
         = Call       { exprPos      :: SourcePos

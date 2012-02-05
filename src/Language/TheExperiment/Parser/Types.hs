@@ -1,6 +1,11 @@
-module Language.TheExperiment.Parser.Types (
-  Type,
+module Language.TheExperiment.Parser.Types
+  ( aType,
 ) where
+
+import Text.Parsec hiding (spaces)
+import Text.Parsec.String
+
+import Language.TheExperiment.AST (ParsedType(..))
 
 -- data Type = CompositeType String [Type]
 --           | KindedType KindedType -- (Foo a) => a Int
@@ -15,13 +20,6 @@ module Language.TheExperiment.Parser.Types (
 -- 
 -- data TypeVariable = TypeVariable String
 --   deriving (Show)
-
-data Type = TypeName String -- Int, Var, Foo, Void
-          | TypeCall Type [Type] -- Foo a Int, Foo a b, Foo (Foo Var)
-          | TypeVariable String -- a, b, c, d, bees
-          | Function [Type] Type -- (a, b) -> c
-  deriving (Show)
-
 
 -- foo :: (Int, a || {zap :: Int, boop :: Int}, Bar) -> c
 -- foo(num, a, thing):
@@ -40,5 +38,20 @@ data Type = TypeName String -- Int, Var, Foo, Void
 --     b :: {x, y}
 --     c
 
+-- HAMMER OF CONFORMITY!!!!!
+aTypeName :: Parser ParsedType
+aTypeName = do
+  pos <- getPosition
+  firstLetter <- oneOf ['A'..'Z']
+  rest <- many alphaNum
+  return $ TypeName { typePos = pos, typeName = firstLetter : rest }
 
+aTypeVariable :: Parser ParsedType
+aTypeVariable = do
+  pos <- getPosition
+  firstLetter <- oneOf ['a'..'z']
+  rest <- many alphaNum
+  return $ TypeVariable { typePos = pos, typeVariable = firstLetter : rest }
 
+aType :: Parser ParsedType
+aType = aTypeName <|> aTypeVariable

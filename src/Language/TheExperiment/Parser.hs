@@ -1,7 +1,6 @@
 module Language.TheExperiment.Parser
   ( module Language.TheExperiment.Parser.Literals
   , aStdType
-  , aType
   , aIntType
 ) where
 
@@ -27,7 +26,7 @@ import Control.Monad
 
 import Language.TheExperiment.Type
 import Language.TheExperiment.Parser.Literals
-import Language.TheExperiment.Parser.Types
+-- import Language.TheExperiment.Parser.Types
 
 keyword :: String -> Parser ()
 keyword s = try $ do
@@ -68,13 +67,13 @@ aStdType = (try aVoid)
     aF32 = keyword "F32" >> return F32
     aF64 = keyword "F64" >> return F64
 
-aType :: Parser (Type a)
-aType = (try aTypeStd)
-    <|> (try aTypeName)
-  where 
-    aTypeStd = liftM Std aStdType
-    aTypeName = do
-      firstLetter <- oneOf ['A'..'Z']
-      rest <- many alphaNum
-      return $ TypeName $ firstLetter : rest
+-- aType :: Parser (Type a)
+-- aType = (try aTypeStd)
+--     <|> (try aTypeName)
+--   where 
+--     aTypeStd = liftM Std aStdType
+--     aTypeName = do
+--       firstLetter <- oneOf ['A'..'Z']
+--       rest <- many alphaNum
+--       return $ TypeName $ firstLetter : rest
 
