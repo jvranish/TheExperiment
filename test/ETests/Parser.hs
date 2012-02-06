@@ -23,15 +23,15 @@ runTestParser p s = runParser g () testSource s
            State s' _ _ <- getParserState
            return (x, s')
 
-parseSucceedsWith :: (Eq a) => Parser a -> String -> a -> String -> (Bool, Maybe a)
+parseSucceedsWith :: (TestComp a) => Parser a -> String -> a -> String -> (Bool, Maybe a)
 parseSucceedsWith p s er pr =  case runTestParser p s of
-    Right r | r == (er, pr) -> (True, Just $ fst r)
-            | otherwise     -> (False, Just $ fst r)
-    _                       -> (False, Nothing)
+    Right r | r `comp` (er, pr) -> (True, Just $ fst r)
+            | otherwise         -> (False, Just $ fst r)
+    _                           -> (False, Nothing)
 
 parseFails :: Parser a -> String -> Bool
 parseFails p s = case runTestParser p s of
-    Left _ -> True
+    Left _  -> True
     Right _ -> False
 
 
@@ -116,7 +116,7 @@ parse_tests =
 --   where expect = ExpectSuccess "Types" aType
 
 
-check :: (Eq a, Show a) => ParseTest a -> (Bool, String, String)
+check :: (TestComp a, Show a) => ParseTest a -> (Bool, String, String)
 check (ExpectSuccess parseName aParser input result leftOver) = 
   let (wasSuccess, parsedResult) = parseSucceedsWith aParser input result leftOver
       message = (show input) ++ " expected to parse to <" ++ show result ++ "> but was actually <" ++ show parsedResult ++ ">"
@@ -125,3 +125,27 @@ check (Failure parseName aParser input) =
   let wasFailure = parseFails aParser input
   in  ( wasFailure, parseName, input )
 
+
+class (Eq a) => TestComp a where
+  comp :: a -> a -> Bool
+  comp a b = a == b
+
+instance (TestComp a) => TestComp [a] where
+ comp l1 l2 = and $ zipWith comp l1 l2
+
+instance (TestComp a, TestComp b) => TestComp (a,b) where
+  comp (a,b) (a', b') = (a `comp` a') && (b `comp` b')
+
+instance TestComp Char
+instance TestComp Literal
+
+instance TestComp ParsedType where
+  comp (TypeName { typeName = n  })
+       (TypeName { typeName = n' }) = n `comp` n'
+  comp (TypeVariable { typeVariable = v  })
+       (TypeVariable { typeVariable = v' }) = v `comp` v'
+  comp (TypeCall { typeFunction = f,  typeParams = p  })
+       (TypeCall { typeFunction = f', typeParams = p' }) = (f `comp` f') && (p `comp` p')
+  comp (Function { argTypes = a, returnType = r })
+       (Function { argTypes = a', returnType = r' }) = (a `comp` a') && (r `comp` r')
+  comp _ _ = False
