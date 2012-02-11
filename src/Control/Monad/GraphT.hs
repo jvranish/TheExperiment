@@ -86,16 +86,31 @@ lookupRef ref ((x,y):xys) = do
     False -> lookupRef ref xys
     
 
-copySubGraph :: (MonadFix m, Traversable f, Functor f) => GraphRef f -> GraphT f m (GraphRef f)
+copySubGraph :: (MonadFix m, Traversable f, Functor f) =>
+                GraphRef f -> GraphT f m (GraphRef f)
 copySubGraph ref = do
   relevantNodes <- reachable ref
-  lookupNew <- mfix $ \lookupNew -> do
+  lookupNew <- copySubGraphWithRespectTo relevantNodes
+  lookupNew ref
+
+copySubGraphWithRespectTo
+  :: (Traversable f, MonadFix m) =>
+     [GraphRef f] -> GraphT f m (GraphRef f -> GraphT f m (GraphRef f))
+copySubGraphWithRespectTo relevantNodes = 
+  mfix $ \lookupNew -> do
     newNodes <- forM relevantNodes $ \x -> do
       newValue <- readRef x
       newRef =<< mapM lookupNew newValue
     let lookupNew' a = liftM fromJust $ lookupRef a $ zip relevantNodes newNodes
     return lookupNew'
-  lookupNew ref
+
+copySubGraphs
+  :: (Traversable f, Traversable t, MonadFix m, Functor m) =>
+     t (GraphRef f) -> GraphT f m (t (GraphRef f))
+copySubGraphs refs = do
+  relevantNodes <- fmap concat $ mapM reachable refs
+  lookupNew <- copySubGraphWithRespectTo relevantNodes
+  mapM lookupNew refs
 
 -- 
 -- Check to see if a is reachable from b. Will return false if a == b unless there is a cycle
