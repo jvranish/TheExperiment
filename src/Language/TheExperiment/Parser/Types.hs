@@ -50,16 +50,19 @@ paren :: Parser a -> Parser a
 paren p = between (lexeme $ char '(') (lexeme $ char ')') p
 
 aTypeTerm :: Parser ParsedType
-aTypeTerm = aTypeName <|> aTypeVariable <|> paren aType
+aTypeTerm = aTypeName <|> aTypeVariable <|> paren aType <?> "Type Term"
 
 
 aType :: Parser ParsedType
 aType = do
-  paramTypes <- sepBy common aType
+  paramTypes <- sepBy1 comma aType
   funcReturn <- optionMaybe $ do
       symbol "->"
       aTypeTerm
-  return $ case 
+  return $ case (paramTypes, funcReturn) of
+    (argTypes, Just ret) -> Function pos argTypes ret
+    ([t]     , Nothing) -> t
+    (_       , Nothing) -> parserZero <?> "->"
 
 
 aTypeCall :: Parser ParsedType
