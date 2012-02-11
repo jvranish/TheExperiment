@@ -146,6 +146,6 @@ instance TestComp ParsedType where
        (TypeVariable { typeVariable = v' }) = v `comp` v'
   comp (TypeCall { typeFunction = f,  typeParams = p  })
        (TypeCall { typeFunction = f', typeParams = p' }) = (f `comp` f') && (p `comp` p')
-  comp (Function { argTypes = a, returnType = r })
-       (Function { argTypes = a', returnType = r' }) = (a `comp` a') && (r `comp` r')
+  comp (FunctionType { argTypes = a, returnType = r })
+       (FunctionType { argTypes = a', returnType = r' }) = (a `comp` a') && (r `comp` r')
   comp _ _ = False

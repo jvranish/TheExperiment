@@ -39,6 +39,9 @@ import Language.TheExperiment.AST (ParsedType(..))
 --     b :: {x, y}
 --     c
 
+symbol :: String -> Parser String
+symbol = lexeme . string
+
 lexeme :: Parser a -> Parser a
 lexeme p = do
   a <- p
@@ -55,14 +58,15 @@ aTypeTerm = aTypeName <|> aTypeVariable <|> paren aType <?> "Type Term"
 
 aType :: Parser ParsedType
 aType = do
-  paramTypes <- sepBy1 comma aType
+  pos        <- getPosition
+  paramTypes <- sepBy1 aTypeCall (char ',')
   funcReturn <- optionMaybe $ do
-      symbol "->"
+      _ <- symbol "->"
       aTypeTerm
-  return $ case (paramTypes, funcReturn) of
-    (argTypes, Just ret) -> Function pos argTypes ret
-    ([t]     , Nothing) -> t
-    (_       , Nothing) -> parserZero <?> "->"
+  case (paramTypes, funcReturn) of
+    (ts , Just ret) -> return $ FunctionType pos ts ret
+    ([t], Nothing)  -> return $ t
+    (_  , Nothing)  -> parserZero <?> "->"
 
 
 aTypeCall :: Parser ParsedType

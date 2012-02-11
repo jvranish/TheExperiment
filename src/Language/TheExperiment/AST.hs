@@ -38,7 +38,7 @@ data ParsedType = TypeName   { -- Int, Var, Foo, Void
                   typeFunction :: ParsedType,
                   typeParams   :: [ParsedType]
                 } |
-                Function     { -- (a, b) -> c
+                FunctionType { -- (a, b) -> c
                   typePos      :: SourcePos,
                   argTypes     :: [ParsedType],
                   returnType   :: ParsedType
