@@ -52,8 +52,18 @@ paren p = between (lexeme $ char '(') (lexeme $ char ')') p
 aTypeTerm :: Parser ParsedType
 aTypeTerm = aTypeName <|> aTypeVariable <|> paren aType
 
+
 aType :: Parser ParsedType
 aType = do
+  paramTypes <- sepBy common aType
+  funcReturn <- optionMaybe $ do
+      symbol "->"
+      aTypeTerm
+  return $ case 
+
+
+aTypeCall :: Parser ParsedType
+aTypeCall = do
     pos         <- getPosition
     typeFunc    <- aTypeTerm
     typeParams' <- many aTypeTerm
