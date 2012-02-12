@@ -55,11 +55,13 @@ literal_tests = [ expect "\"Hello World\"" (StringLiteral "Hello World") ""
 
 parse_tests :: [ParseTest ParsedType]
 parse_tests =
-    [ expect "Foo"     expectedName_Foo  ""
-    , expect "(Foo)"   expectedName_Foo  ""
-    , expect "a"       expectedTypeVar_a ""
-    , expect "Bar a"   expectedTypeCall_Bar_a ""
-    , expect "(Bar b)" expectedTypeCall_ParenBar_b ""
+    [ expect "Foo"       expectedName_Foo  ""
+    , expect "(Foo)"     expectedName_Foo  ""
+    , expect "a"         expectedTypeVar_a ""
+    , expect "Bar a"     expectedTypeCall_Bar_a ""
+    , expect "(Bar b)"   expectedTypeCall_ParenBar_b ""
+    , expect "a, b -> c" expectedFunctionType ""
+    , expect "Foo a, (a -> b) -> c" expectedCrazyFunctionType ""
     ]
   where
     expect = ExpectSuccess "ParsedType" aType
@@ -75,6 +77,30 @@ parse_tests =
                                     typeFunction = (TypeName { typeName = "Bar", typePos = pos }),
                                     typeParams = [ (TypeVariable { typeVariable = "b", typePos = pos }) ],
                                     typePos = pos})
+    expectedFunctionType = (FunctionType pos [TypeVariable { typeVariable = "a", typePos = pos},
+                                              TypeVariable { typeVariable = "b", typePos = pos}]
+                                             (TypeVariable { typeVariable = "c", typePos = pos}))
+    expectedCrazyFunctionType =
+      (FunctionType {
+        typePos = pos,
+        argTypes = [
+          TypeCall {
+              typePos = pos,
+              typeFunction = TypeName {
+                typePos = pos,
+                typeName = "Foo"
+              },
+              typeParams = [ TypeVariable {typePos = pos, typeVariable = "a"} ]
+            },
+          FunctionType {
+            typePos = pos,
+            argTypes = [
+              TypeVariable {typePos = pos, typeVariable = "a"}],
+              returnType = TypeVariable {typePos = pos, typeVariable = "b"}
+          }
+        ],
+        returnType = TypeVariable {typePos = pos, typeVariable = "c"}
+      })
 
 -- parse_tests :: [ParseTest IntType]
 -- parse_tests = 
@@ -146,6 +172,6 @@ instance TestComp ParsedType where
        (TypeVariable { typeVariable = v' }) = v `comp` v'
   comp (TypeCall { typeFunction = f,  typeParams = p  })
        (TypeCall { typeFunction = f', typeParams = p' }) = (f `comp` f') && (p `comp` p')
-  comp (Function { argTypes = a, returnType = r })
-       (Function { argTypes = a', returnType = r' }) = (a `comp` a') && (r `comp` r')
+  comp (FunctionType { argTypes = a, returnType = r })
+       (FunctionType { argTypes = a', returnType = r' }) = (a `comp` a') && (r `comp` r')
   comp _ _ = False
