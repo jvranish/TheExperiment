@@ -106,11 +106,11 @@ copySubGraphWithRespectTo relevantNodes =
 
 copySubGraphs
   :: (Traversable f, Traversable t, MonadFix m, Functor m) =>
-     t (GraphRef f) -> GraphT f m (t (GraphRef f))
-copySubGraphs refs = do
-  relevantNodes <- fmap concat $ mapM reachable refs
+     (a -> (GraphRef f, GraphRef f -> a)) -> t a -> GraphT f m (t a)
+copySubGraphs lense a = do
+  relevantNodes <- fmap concat $ mapM (reachable . fst . lense) a
   lookupNew <- copySubGraphWithRespectTo relevantNodes
-  mapM lookupNew refs
+  mapM ((\(ref, g) -> fmap g $ lookupNew ref) . lense) a
 
 -- 
 -- Check to see if a is reachable from b. Will return false if a == b unless there is a cycle

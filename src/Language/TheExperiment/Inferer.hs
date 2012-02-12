@@ -9,6 +9,7 @@ import Control.Monad.Trans.State
 import Control.Monad.Trans
 
 import Data.List (genericLength)
+import Data.Maybe
 import Data.Foldable
 import Data.Traversable
 
@@ -18,12 +19,12 @@ import qualified Data.Map as Map
 
 import Language.TheExperiment.Misc
 import Language.TheExperiment.Type
-import Language.TheExperiment.AST
+import Language.TheExperiment.AST hiding (TypeName)
 
 import qualified Control.Monad.GraphT as GraphT
 import qualified Control.Monad.ErrorM as ErrorM
 
-import Prelude hiding (concat, mapM, mapM_)
+import Prelude hiding (concat, concatMap, mapM, mapM_)
 
 -- TODO list:
 {-
@@ -88,6 +89,11 @@ subsType (TypeRef this) (TypeRef withThis) = Inferrer $ lift $
 
 copyType :: TypeRef -> Inferrer TypeRef
 copyType (TypeRef ref) = Inferrer $ lift $ liftM TypeRef $ GraphT.copySubGraph ref
+
+copyWithNewTypes :: (Traversable f) => f NodeData -> Inferrer (f NodeData)
+copyWithNewTypes a = Inferrer $ lift $ GraphT.copySubGraphs lense a
+  where
+    lense n = (unwrapTypeRef $ typeRef n, \t -> n {typeRef = TypeRef t})
 
 typeEq :: TypeRef -> TypeRef -> Inferrer Bool
 typeEq (TypeRef a) (TypeRef b) = Inferrer $ lift $ GraphT.graphEq a b
@@ -386,7 +392,80 @@ inferTopLevelStmtMemo topStmt = do
         TypeDef { } -> return ()
     return t
 
+inferModule :: Module NodeData -> Inferrer ()
+inferModule (Module _ topStmts) = mapM_ inferTopLevelStmt topStmts
 
+
+specialize :: String -> NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
+specialize name (NodeData { nodeEnv = Environment env
+                          , typeRef = t }) = do
+    a <- lookupDef
+    case a of
+      Just f@(FuncDef {}) -> do
+        f' <- lift $ copyWithNewTypes(f)
+        t' <- lift $ copyType t
+        -- This will cause a horrible crash if there is a unify failure
+        -- #TODO refactor how I do error checking in unify
+        _ <- lift $ unify undefined t' (typeRef $ topStmtNodeData f')
+        let names = getNames f'
+        modify $ ((nodeId $ topStmtNodeData f', f') :)
+        mapM_ (uncurry specialize) names
+
+      _ -> return ()
+  where
+{-
+      lookup name, 
+      get nodeid of the looked up item
+        look up nodeid in the already specialized list
+           check the list of results against the requested type in nodeData
+           if there is a match, then abort (this has already been specialized)
+-}
+    lookupDef = do
+      case Map.lookup name env of
+        Nothing -> return Nothing -- This is an error, but should get
+                                  -- caught at the infer stage
+        Just f -> do
+          specialized <- get 
+          let potentials = lookups (nodeId $ topStmtNodeData f) specialized
+          a <- lift $ anyM (typeEq t) 
+                           (fmap (typeRef . topStmtNodeData) potentials)
+          case a of
+            True -> return Nothing
+            False -> return $ Just f
+
+
+
+getNames :: TopLevelStmt NodeData -> [(String, NodeData)]
+getNames (TopVarDef {}) = []
+getNames (FuncDef { funcStmt = stmt }) = getStmtNames stmt
+getNames (TypeDef {}) = []
+
+-- Assigned name don't count, as they are monomorphic only
+getStmtNames :: Statement NodeData -> [(String, NodeData)]
+getStmtNames (Assign { assignExpr = expr }) = getExprNames expr
+getStmtNames (If { ifCond = cond,
+                   ifThen = thenStmt,
+                   ifElse = elseStmt }) = getExprNames cond
+                                       ++ getStmtNames thenStmt
+                                       ++ concat (maybeToList 
+                                                 (fmap getStmtNames elseStmt))
+getStmtNames (While { whileCond = cond
+                    , whileBody = body }) = getExprNames cond
+                                         ++ getStmtNames body
+getStmtNames (ExprStmt { stmtExpr = expr }) = getExprNames expr
+getStmtNames (Return { returnExpr = expr }) = getExprNames expr
+getStmtNames (Block { blockBody = (_, stmts)}) =
+-- #TODO when we support closures this could be tricky
+--   how do we specialize polymorphic closures?
+  concatMap getStmtNames stmts
+
+getExprNames :: Expr NodeData -> [(String, NodeData)]
+getExprNames (Call { callFunc = f
+                   , callParams = params }) = getExprNames f 
+                                           ++ concatMap getExprNames params
+getExprNames (Identifier { exprNodeData = nodeData
+                         , idName = name }) = [(name, nodeData)]
+getExprNames (Literal {}) = []
 
 {-
 
