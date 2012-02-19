@@ -4,7 +4,7 @@ module Language.TheExperiment.Inferrer where
 import Text.Parsec.Pos
 
 import Control.Applicative hiding (empty)
-import Control.Monad hiding (mapM, mapM_)
+import Control.Monad hiding (mapM, mapM_, forM)
 import Control.Monad.Trans.State
 import Control.Monad.Trans
 
@@ -20,6 +20,8 @@ import qualified Data.Map as Map
 import Language.TheExperiment.Misc
 import Language.TheExperiment.Type
 import Language.TheExperiment.AST hiding (TypeName)
+
+import Language.TheExperiment.CodeGenType
 
 import qualified Control.Monad.GraphT as GraphT
 import qualified Control.Monad.ErrorM as ErrorM
@@ -66,6 +68,25 @@ data NodeData = NodeData { nodeEnv :: Environment
                          , nodeId  :: NodeId
                          }
     deriving (Show)
+
+prepareAST :: (Traversable f) => f a -> StateT Int Inferrer (f (TypeRef, NodeId))
+prepareAST t = forM t $ \_ -> do
+  ref <- lift $ newType $ Var Nothing NotOverloaded
+  n <- getAndModifyT (+1)
+  return (ref, n)
+
+
+runInferrer :: Inferrer a -> ErrorM.ErrorM a
+runInferrer (Inferrer m) = GraphT.runGraphT (evalStateT m (Map.empty))
+
+infer :: Module a -> ErrorM.ErrorM (Module GenType)
+infer m@(Module pos _) = runInferrer $ do
+  m' <- evalStateT (prepareAST m) 0
+  let m'' = scopeModule (Environment Map.empty) m'
+  inferModule m''
+  topStmts <- fmap (fmap snd) $ execStateT (specializeModule m'') []
+  mapM convertNodeData (Module pos topStmts)
+
 
 
 newtype Inferrer a = 
@@ -169,6 +190,9 @@ scopeModule env (Module pos stmts) = let
     env' = localDefs env stmts'
     stmts' = fmap (scopeTopLevelStmt env') stmts
     in Module pos stmts'
+
+
+
       
 prettyError :: SourcePos -> String -> Doc -> Doc
 prettyError pos msg longmsg = text "Error in" <+> text (show pos) <> colon <+> text msg $+$ nest 2 longmsg
@@ -395,6 +419,41 @@ inferTopLevelStmtMemo topStmt = do
 inferModule :: Module NodeData -> Inferrer ()
 inferModule (Module _ topStmts) = mapM_ inferTopLevelStmt topStmts
 
+getFuncName :: TopLevelStmt NodeData -> Maybe (String, NodeData)
+getFuncName (FuncDef { funcName        = name
+                     , topStmtNodeData = nodeData }) = Just (name, nodeData)
+getFuncName _ = Nothing
+
+
+
+
+convertNodeData :: NodeData -> Inferrer GenType
+convertNodeData (NodeData { typeRef = ref}) = convertTypes [] ref
+
+convertTypes :: [GenTypeDerivDecl] -> TypeRef -> Inferrer GenType
+convertTypes decl ref = do
+    t <- readType ref
+    case t of
+      TypeName name     -> return $ GenType (CTypeName name) decl
+      Std std           -> return $ GenType (CStd std) decl 
+      -- #TODO check the order here (I think it might be backwards)
+      Pointer a         -> convertTypes ((CPointerDecl []):decl) a
+      Array n a -> do
+        n' <- readType n
+        case n' of
+          (NType n'') -> convertTypes ((CArrayDecl [] n''):decl) a
+          _           -> convertError "bad array length type"
+      Func _ _  -> convertError "we do not support function types yet"
+      Var _ _   -> convertError "Something is broken. Var in output"
+  where
+    convertError msg = do
+      addError $ text msg
+      return $ GenType (CTypeName "error") []
+
+
+specializeModule :: Module NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
+specializeModule (Module _ topStmts) = 
+  mapM_ (uncurry specialize) (catMaybes $ fmap getFuncName topStmts) 
 
 specialize :: String -> NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
 specialize name (NodeData { nodeEnv = Environment env

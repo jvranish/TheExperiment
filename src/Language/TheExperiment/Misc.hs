@@ -1,6 +1,7 @@
 module Language.TheExperiment.Misc where
 
 import Control.Monad hiding (mapM)
+import Control.Monad.Trans.State
 
 import Data.Foldable
 import Data.Traversable
@@ -32,3 +33,21 @@ intersectByM eq (x:xs) ys = do
 
 lookups :: (Eq a) => a -> [(a, b)] -> [b]
 lookups k xs = fmap snd $ filter ((== k) . fst) xs
+
+getT :: (Monad m) => StateT s m s
+getT = StateT $ \s -> return (s, s)
+
+putT :: (Monad m) => s -> StateT s m ()
+putT s = StateT $ \_ -> return ((), s)
+
+modifyT :: (Monad m) => (s -> s) -> StateT s m ()
+modifyT f = do
+  s <- getT
+  putT (f s)
+
+getAndModifyT :: (Monad m) => (s -> s) -> StateT s m s
+getAndModifyT f = do
+  a <- getT
+  modifyT f
+  return a
+
