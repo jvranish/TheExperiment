@@ -161,9 +161,6 @@ scopeStatement env (Block pos (t, nId) (tlStmts, stmts)) = let
     stmts'   = fmap (scopeStatement env') stmts
     in Block pos (NodeData env' t nId) (tlStmts', stmts')
 
-returnId :: String
-returnId = "#return"
-
 -- #TODO this needs to get ironed out with the return for functions
 scopeTopLevelStmt :: Environment -> TopLevelStmt (TypeRef, NodeId)
                   -> TopLevelStmt NodeData

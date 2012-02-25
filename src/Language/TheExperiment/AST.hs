@@ -25,6 +25,16 @@ data Literal = StringLiteral String
     deriving (Show, Eq, Ord)
 -- #TODO replace this with something else in Type.hs?
 
+-- format indicator for pretty printing (keeps track of precedence, etc...)
+data OpFormat = NotOperator
+              | ExplicitOperator
+              | In Rational
+              | InR Rational
+              | InL Rational
+              | Pre Rational
+              | Post Rational
+  deriving (Show, Ord, Eq)
+
 data ParsedType = TypeName   { -- Int, Var, Foo, Void
                   typePos      :: SourcePos,
                   typeName     :: String
@@ -54,6 +64,7 @@ data Expr a
         | Identifier { exprPos      :: SourcePos
                      , exprNodeData :: a
                      , idName       :: String
+                     , opFormat     :: OpFormat
                      }
         | Literal    { exprPos      :: SourcePos
                      , exprNodeData :: a
@@ -106,6 +117,9 @@ data VarDef a
                  , varName        :: String
                  }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+returnId :: String
+returnId = "#return"
 
 data TopLevelStmt a
         = TopVarDef { topStmtPos      :: SourcePos

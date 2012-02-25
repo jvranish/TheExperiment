@@ -13,16 +13,28 @@ module Language.TheExperiment.TempLexer  ( symbol
                                          , whiteSpace
                                          , comma
                                          , lexer
+                                         , Parser
+                                         , ParserOperator
+                                         , Operators(..)
                                          ) where
 
 import Control.Monad
 
 import Text.Parsec
-import Text.Parsec.String
+import Text.Parsec.Expr
 import Text.Parsec.Language
 import qualified Text.Parsec.Token as Token
 
-lexerStyle :: LanguageDef ()
+import Data.Functor.Identity
+
+import Language.TheExperiment.AST
+
+type ParserOperator = Operator String Operators Identity (Expr ())
+type Parser a = ParsecT String Operators Identity a
+newtype Operators = Operators [(ParserOperator, Rational)]
+
+
+lexerStyle :: LanguageDef Operators
 lexerStyle = Token.LanguageDef
                 { Token.commentStart   = "{-"
                 , Token.commentEnd     = "-}"
@@ -32,14 +44,15 @@ lexerStyle = Token.LanguageDef
                 , Token.identLetter    = alphaNum <|> oneOf "_'#" 
                 , Token.opStart        = Token.opLetter lexerStyle
                 , Token.opLetter       = oneOf "~!@$%^&*-+/?|=<>" 
-                , Token.reservedOpNames= ["::"]
+                , Token.reservedOpNames= ["::", ":", "="]
                 , Token.reservedNames  = [ "return", "struct", "union"
                                          , "for", "while", "if", "else"
-                                         , "do", "var", "foreign", "def"]
+                                         , "var", "foreign", "def", "end"
+                                         , "type"]
                 , Token.caseSensitive  = True
                 }
 
-lexer :: Token.TokenParser ()
+lexer :: Token.TokenParser Operators
 lexer = Token.makeTokenParser lexerStyle
 
 
