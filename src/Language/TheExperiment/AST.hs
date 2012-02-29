@@ -5,13 +5,16 @@
           #-}
 module Language.TheExperiment.AST where
 
+import Test.QuickCheck.Arbitrary
+import Test.QuickCheck.Gen
+
 import Text.Parsec.Pos
 import Text.PrettyPrint
 
 import Data.Foldable
 import Data.Traversable
 
-import Language.TheExperiment.Type
+import qualified Language.TheExperiment.Type as T
 -- import Language.TheExperiment.CodeGenType -- Only used for type constraint not
                                           --  actually needed
 
@@ -137,7 +140,7 @@ data TopLevelStmt a
         | TypeDef   { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
                     , typeDefName     :: String
-                    , typeDefType     :: TypeDef ParsedType
+                    , typeDefType     :: T.TypeDef ParsedType
                     }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
                     
@@ -154,3 +157,43 @@ class NodeType a where
 -- are really intending to allow the type to be
 -- used as a NodeType.
 -- instance NodeType GenType where
+
+
+pos = initialPos "arbitrary source"
+
+instance Arbitrary ParsedType where
+  arbitrary = frequency [(10, arbTypeName), (10, arbTypeVariable), (1, arbTypeCall), (1, arbFunctionType)]
+    where
+      uppers = elements ['A'..'Z']
+      lowers = elements ['a'..'z']
+      chars = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ['_']
+      arbTypeName = do
+        first <- uppers
+        rest <- listOf chars
+        return $ TypeName { typePos = pos, typeName = (first : rest) }
+      arbTypeVariable = do
+        first <- lowers
+        rest <- listOf chars
+        return $ TypeVariable { typePos = pos, typeVariable = (first : rest) }
+      arbTypeCall = do
+        fun <- arbitrary
+        params <- arbitrary
+        return $ TypeCall { typePos = pos, typeFunction = fun, typeParams = params }
+      arbFunctionType = do
+        args <- arbitrary
+        ret <- arbitrary
+        return $ FunctionType { typePos = pos, argTypes = args, returnType = ret }
+  shrink (TypeName { typePos = pos', typeName = name})
+    = [TypeName { typePos = pos', typeName = n' } | n' <- shrink name]
+  shrink (TypeVariable { typePos = pos', typeVariable = var})
+    = [TypeVariable { typePos = pos', typeVariable = v' } | v' <- shrink var]
+  shrink (TypeCall { typePos = pos', typeFunction = fun, typeParams = params})
+    = [TypeCall { typePos = pos', typeFunction = f', typeParams = p' } |
+           f' <- shrink fun,
+           p' <- shrink params]
+  shrink (FunctionType { typePos = pos', argTypes = args, returnType = ret})
+    = [FunctionType { typePos = pos', argTypes = a', returnType = r' } |
+           a' <- shrink args,
+           r' <- shrink ret]
+    
+
