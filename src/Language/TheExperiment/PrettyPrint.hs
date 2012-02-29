@@ -20,16 +20,16 @@ _ppParsedType TypeCall     { typeFunction = fun,
                                                               FunctionArg -> doc
                                                               Always      -> parens doc
   where
-    doc = fun_doc <+> params_doc
+    doc = fun_doc <+> (nest 2 params_doc)
     fun_doc = _ppParsedType fun Always
-    params_doc = hsep (map (flip _ppParsedType Always) params)
+    params_doc = vcat (map (flip _ppParsedType Always) params)
 _ppParsedType FunctionType { argTypes = args,
                              returnType = ret } nesting = case nesting of
                                                               None        -> doc
                                                               FunctionArg -> parens doc
                                                               Always      -> parens doc
   where
-    doc = args_doc <+> text "->" <+> ret_doc
-    args_doc = hsep $ punctuate comma (map (flip _ppParsedType FunctionArg) args)
+    doc = args_doc <+> text "->" <+> (nest 2 ret_doc)
+    args_doc = vcat $ punctuate comma (map (flip _ppParsedType FunctionArg) args)
     ret_doc = _ppParsedType ret FunctionArg
     
