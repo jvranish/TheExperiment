@@ -12,7 +12,7 @@ ppParsedType :: ParsedType -> Doc
 ppParsedType = flip _ppParsedType None
 
 _ppParsedType :: ParsedType -> ParenContext -> Doc
-_ppParsedType TypeName     { typeName = name } _    = text name
+_ppParsedType TypeName     { typeName = name }    _ = text name
 _ppParsedType TypeVariable { typeVariable = var } _ = text var
 _ppParsedType TypeCall     { typeFunction = fun,
                              typeParams = params} nesting = case nesting of
