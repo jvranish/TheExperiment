@@ -44,7 +44,7 @@ t5 =
               returnType = TypeVariable {typePos = pos, typeVariable = "b"}
           }
         ],
-        returnType = TypeVariable {typePos = pos, typeVariable = "c"}
+        returnType = t4
       })
 
 
