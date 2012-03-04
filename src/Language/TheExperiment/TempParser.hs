@@ -14,16 +14,13 @@ import Data.Functor.Identity
 import Language.TheExperiment.TempLexer
 import Language.TheExperiment.AST
 
+import Language.TheExperiment.Parser.Types
 
-parseLex :: Parser a -> Parser a
-parseLex p = do 
-  whiteSpace
-  x <- p
-  eof
-  return x
+-- #TODO change naming convention to the aThing rather than parseThing
 
-parseSource :: Parser (Module ())
-parseSource = parseLex $ many parseOpDef >>= putState . Operators >> parseModule
+-- #TODO add multi module parsing
+-- #TODO prefix identifiers with module name
+-- #TODO module importing?
 
 parseFile :: String -> IO (Either ParseError (Module ()))
 parseFile filename  =  do 
@@ -31,6 +28,15 @@ parseFile filename  =  do
   -- the seq is here because of the stupid lazy IO! >:|
   return $ seq (length input) $ runIdentity $ runParserT parseSource (Operators []) filename input
 
+parseSource :: Parser (Module ())
+parseSource = parseLex $ many parseOpDef >>= putState . Operators >> parseModule
+
+parseLex :: Parser a -> Parser a
+parseLex p = do 
+  whiteSpace
+  x <- p
+  eof
+  return x
 
 parseModule :: Parser (Module ())
 parseModule = do
@@ -43,13 +49,32 @@ parseModule = do
 parseTopLevelStmt :: Parser (TopLevelStmt ())
 parseTopLevelStmt = parseVarDef
                 <|> parseFuncDef
+                <|> parseForeign
                 -- <|> parseTypeDef
                 <?> "definition"
 
+parseSignature :: Parser TypeSig
+parseSignature = do
+  reservedOp "::"
+  t <- aType
+  reservedOp ";"
+  constraints <- liftM (concat . maybeToList) $ 
+                    optionMaybe $ do
+                      reserved "where"
+                      sepBy parseConstraint comma
+  return $ TypeSig constraints t
+
+parseConstraint :: Parser TypeConstraint
+parseConstraint = do
+  name <- lowerIdentifier
+  reservedOp "~"
+  overloads <- sepBy aType (reservedOp "|")
+  return $ TypeConstraint name overloads
 
 parseVarDef :: Parser (TopLevelStmt ())
 parseVarDef = do
   pos <- getPosition
+  typeSig <- optionMaybe parseSignature
   reserved "var"
   name <- identifier
   return $ TopVarDef { topStmtPos = pos
@@ -58,11 +83,13 @@ parseVarDef = do
                                        , varDefNodeData = ()
                                        , varName = name
                                        }
+                     , sig = typeSig
                      }
 
 parseFuncDef :: Parser (TopLevelStmt ())
 parseFuncDef = do
   pos <- getPosition
+  typeSig <- optionMaybe parseSignature
   reserved "def"
   name <- identifier
   params <- parens $ sepBy parseParam comma
@@ -78,7 +105,21 @@ parseFuncDef = do
                                       , varName = returnId
                                       }
                    , funcStmt = body
+                   , sig = typeSig
                    }
+
+parseForeign :: Parser (TopLevelStmt ())
+parseForeign = do
+  pos <- getPosition
+  typeSig <- optionMaybe parseSignature
+  reserved "foreign"
+  name <- identifier
+  return $ Foreign { topStmtPos = pos
+                   , topStmtNodeData = ()
+                   , foreignName = name
+                   , sig = typeSig
+                   }
+
 
 -- #TODO unfinished (missing most useful typedefs)
 
@@ -147,6 +188,7 @@ parseWhile = do
                  , whileBody = stmt
                  }
 
+-- #TODO change the name of this to CallStmt
 parseExprStmt :: Parser (Statement ())
 parseExprStmt = do
   pos <- getPosition
@@ -196,7 +238,7 @@ parseSmplExpr = parseIdOrCall
 parseLiteral :: Parser (Expr ())
 parseLiteral = do
   pos <- getPosition
-  lit <- aLiteral
+  lit <- lexeme aLiteral
   return $ Literal { exprPos = pos
                    , exprNodeData = ()
                    , literal = lit
@@ -232,6 +274,14 @@ parseIdOrCall = do
 --              <|> brackets operator
 
 
+{-
+The syntax goes like this:
+infixl + add 5
+
+The function is a bit of a mind bender due to the wierdness
+ of the Parsec Operator type. I written an equivalent to this 
+ function at least five times and it still confuses me.
+-}
 parseOpDef :: Parser (ParserOperator, Rational)
 parseOpDef = parseOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
          <|> parseOpType "infix"   In   (flip Infix AssocNone . liftM call2)
@@ -250,14 +300,16 @@ parseOpDef = parseOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
     parseOpType tag fixityCons opCons = do
       --opCons :: Parser () -> ParserOperator
       reserved tag
-      name <- operator
+      opName <- operator
+      name <- identifier
       precedence <- rational
       let opParser = do
           pos <- getPosition
-          reservedOp name
+          reservedOp opName
           return $ Identifier { exprPos = pos
                               , exprNodeData = ()
-                              , idName = name
+                              -- #TODO find a more general solution here:
+                              , idName = "Buildin." ++ name
                               , opFormat = fixityCons precedence }
       return (opCons opParser, precedence)
     call f a    = call' f [a]

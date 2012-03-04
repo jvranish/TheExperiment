@@ -176,10 +176,15 @@ genVarDef (VarDef { varDefPos = pos
 
 genModule :: Module GenType -> CTranslUnit
 genModule (Module pos topLevels) = 
-    CTranslUnit (fmap genTopLevel topLevels) (getNodeInfo pos)
+    CTranslUnit (fmap genTopLevel $ filter foreignFilter topLevels) 
+                (getNodeInfo pos)
+
+foreignFilter (Foreign {}) = False
+foreignFilter _ = True
 
 genTopLevel :: TopLevelStmt GenType -> CExtDecl
 -- #TODO we currently do not handle var defs with initializers
+-- #TODO I'm filtering out the foreign defs but I don't like depending on that
 genTopLevel (TopVarDef { varDef = def } ) = CDeclExt $ genVarDef def
 genTopLevel (TypeDef { topStmtPos = pos
                      , topStmtNodeData = t

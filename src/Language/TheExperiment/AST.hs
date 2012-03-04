@@ -35,6 +35,13 @@ data OpFormat = NotOperator
               | Post Rational
   deriving (Show, Ord, Eq)
 
+data TypeSig = TypeSig [TypeConstraint] ParsedType
+  deriving (Show, Ord, Eq)
+
+data TypeConstraint = TypeConstraint String [ParsedType]
+  deriving (Show, Ord, Eq)
+
+-- #TODO change this name to just 'Type' 
 data ParsedType = TypeName   { -- Int, Var, Foo, Void
                   typePos      :: SourcePos,
                   typeName     :: String
@@ -126,6 +133,7 @@ data TopLevelStmt a
                     , topStmtNodeData :: a
                     , varDef          :: VarDef a
                     -- , varInitExpr     :: Maybe (Expr a)
+                    , sig             :: Maybe TypeSig
                     }
         | FuncDef   { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
@@ -133,7 +141,14 @@ data TopLevelStmt a
                     , funcParams      :: [VarDef a]
                     , funcRet         :: VarDef a
                     , funcStmt        :: Statement a
+                    , sig             :: Maybe TypeSig
                     }
+        | Foreign   { topStmtPos      :: SourcePos
+                    , topStmtNodeData :: a
+                    , foreignName     :: String
+                    -- This has the same type to match, but it will
+                    --  _always_ have a signature (enforces by parser)
+                    , sig             :: Maybe TypeSig } 
         | TypeDef   { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
                     , typeDefName     :: String

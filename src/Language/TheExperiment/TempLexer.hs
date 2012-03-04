@@ -1,5 +1,6 @@
 
-module Language.TheExperiment.TempLexer  ( symbol
+module Language.TheExperiment.TempLexer  ( lexeme
+                                         , symbol
                                          , parens
                                          , brackets
                                          , natural
@@ -8,6 +9,7 @@ module Language.TheExperiment.TempLexer  ( symbol
                                          , stringLiteral
                                          , operator
                                          , identifier
+                                         , lowerIdentifier
                                          , reserved
                                          , reservedOp
                                          , whiteSpace
@@ -48,14 +50,15 @@ lexerStyle = Token.LanguageDef
                 , Token.reservedNames  = [ "return", "struct", "union"
                                          , "for", "while", "if", "else"
                                          , "var", "foreign", "def", "end"
-                                         , "type"]
+                                         , "type", "where"]
                 , Token.caseSensitive  = True
                 }
 
 lexer :: Token.TokenParser Operators
 lexer = Token.makeTokenParser lexerStyle
 
-
+lexeme :: Parser a -> Parser a
+lexeme = Token.lexeme lexer
 
 symbol :: String -> Parser String
 symbol = Token.symbol lexer
@@ -92,6 +95,9 @@ reservedOp = Token.reservedOp lexer
 
 identifier :: Parser String
 identifier = Token.identifier lexer
+
+lowerIdentifier :: Parser String
+lowerIdentifier = Token.identifier lexer --( lexer { Token.identStart = letter } )
 
 reserved :: String -> Parser ()
 reserved = Token.reserved lexer

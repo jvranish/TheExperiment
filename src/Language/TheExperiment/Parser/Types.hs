@@ -3,9 +3,10 @@ module Language.TheExperiment.Parser.Types
 ) where
 
 import Text.Parsec hiding (spaces)
-import Text.Parsec.String
+-- import Text.Parsec.String
 import Text.Parsec.Char
 
+import Language.TheExperiment.TempLexer hiding (lexeme)
 import Language.TheExperiment.AST (ParsedType(..))
 
 -- data Type = CompositeType String [Type]
@@ -38,13 +39,13 @@ import Language.TheExperiment.AST (ParsedType(..))
 --     a :: Int
 --     b :: {x, y}
 --     c
-
+ {-
 symbol :: String -> Parser String
 symbol = lexeme . string
 
 comma :: Parser Char
 comma = lexeme $ char ','
-
+-}
 lexeme :: Parser a -> Parser a
 lexeme p = do
   a <- p
