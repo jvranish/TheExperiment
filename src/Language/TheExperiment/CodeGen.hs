@@ -182,7 +182,7 @@ genModule (Module pos topLevels) =
 foreignFilter (Foreign {}) = False
 foreignFilter _ = True
 
-genTopLevel :: TopLevelStmt GenType -> CExtDecl
+genTopLevel :: Definition GenType -> CExtDecl
 -- #TODO we currently do not handle var defs with initializers
 -- #TODO I'm filtering out the foreign defs but I don't like depending on that
 genTopLevel (TopVarDef { varDef = def } ) = CDeclExt $ genVarDef def

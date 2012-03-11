@@ -41,14 +41,14 @@ parseLex p = do
 parseModule :: Parser (Module ())
 parseModule = do
   pos <- getPosition -- hmm do I really want this?
-  topStmts <- many parseTopLevelStmt
+  topStmts <- many parseDefinition
   return $ Module pos topStmts
 
 
 
-parseTopLevelStmt :: Parser (TopLevelStmt ())
+parseDefinition :: Parser (Definition ())
 -- #TODO can we get rid of this try?
-parseTopLevelStmt = try parseVarDef
+parseDefinition = try parseVarDef
                 <|> parseFuncDef
                 <|> parseForeign
                 -- <|> parseTypeDef
@@ -72,7 +72,7 @@ parseConstraint = do
   overloads <- sepBy aType (reservedOp "|")
   return $ TypeConstraint name overloads
 
-parseVarDef :: Parser (TopLevelStmt ())
+parseVarDef :: Parser (Definition ())
 parseVarDef = do
   pos <- getPosition
   typeSig <- optionMaybe parseSignature
@@ -87,7 +87,7 @@ parseVarDef = do
                      , sig = typeSig
                      }
 
-parseFuncDef :: Parser (TopLevelStmt ())
+parseFuncDef :: Parser (Definition ())
 parseFuncDef = do
   pos <- getPosition
   typeSig <- optionMaybe parseSignature
@@ -109,7 +109,7 @@ parseFuncDef = do
                    , sig = typeSig
                    }
 
-parseForeign :: Parser (TopLevelStmt ())
+parseForeign :: Parser (Definition ())
 parseForeign = do
   pos <- getPosition
   typeSig <- optionMaybe parseSignature
@@ -124,7 +124,7 @@ parseForeign = do
 
 -- #TODO unfinished (missing most useful typedefs)
 
---parseTypeDef :: Parser (TopLevelStmt ())
+--parseTypeDef :: Parser (Definition ())
 --parseTypeDef = do
 --  pos <- getPosition
 --  reserved "type"
@@ -213,7 +213,7 @@ parseBlock :: Parser (Statement ())
 parseBlock = do
   pos <- getPosition
   reservedOp ":"
-  topStmts <- many parseTopLevelStmt
+  topStmts <- many parseDefinition
   stmts <- many parseStatement
   reserved "end"
   return $ Block { stmtPos = pos

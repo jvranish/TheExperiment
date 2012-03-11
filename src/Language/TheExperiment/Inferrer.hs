@@ -70,7 +70,7 @@ add ability to catch error from unify monad to improve error messages
 data InferrerStatus = Inferred | Inferring
 
 data Environment = Environment 
-        { valueEnv :: Map.Map String (TopLevelStmt NodeData)
+        { valueEnv :: Map.Map String (Definition NodeData)
         -- , typeEnv  :: Map.Map String (TypeDef v)
         }
 
@@ -221,25 +221,25 @@ refEq (TypeRef a) (TypeRef b) = Inferrer $ lift $ GraphT.refEq a b
 addError :: Doc -> Inferrer ()
 addError d = Inferrer $ lift $ lift $ ErrorM.addError d
 
-getInferStatus :: TopLevelStmt NodeData -> Inferrer (Maybe InferrerStatus)
+getInferStatus :: Definition NodeData -> Inferrer (Maybe InferrerStatus)
 getInferStatus topStmt = 
   Inferrer $ liftM (Map.lookup (nodeId $ topStmtNodeData topStmt)) get 
 
-setInferStatus :: TopLevelStmt NodeData -> InferrerStatus -> Inferrer ()
+setInferStatus :: Definition NodeData -> InferrerStatus -> Inferrer ()
 setInferStatus topStmt status = 
   Inferrer $ modify $ Map.insert (nodeId $ topStmtNodeData topStmt) status
 
 
 
 
-localEnv :: Environment -> [(String, TopLevelStmt NodeData)] -> Environment
+localEnv :: Environment -> [(String, Definition NodeData)] -> Environment
 localEnv (Environment a) xs = Environment $ Map.union (Map.fromList xs) a
 
-localDefs :: Environment -> [TopLevelStmt NodeData] -> Environment
+localDefs :: Environment -> [Definition NodeData] -> Environment
 localDefs env defs = localEnv env $ 
     fmap (\stmt -> (getTopLevelName stmt, stmt)) defs
 
-getTopLevelName :: TopLevelStmt NodeData -> String
+getTopLevelName :: Definition NodeData -> String
 getTopLevelName (TopVarDef { varDef      = def  }) = varName def
 getTopLevelName (FuncDef   { funcName    = name }) = name
 getTopLevelName (Foreign   { foreignName = name }) = name
@@ -257,14 +257,14 @@ scopeStatement env a@(ExprStmt {}) = applyScope env a
 scopeStatement env a@(Return {})   = applyScope env a
 scopeStatement env (Block pos (t, nId) (tlStmts, stmts)) = let
     env'     = localDefs env tlStmts'
-    tlStmts' = fmap (scopeTopLevelStmt env') tlStmts
+    tlStmts' = fmap (scopeDefinition env') tlStmts
     stmts'   = fmap (scopeStatement env') stmts
     in Block pos (NodeData env' t nId) (tlStmts', stmts')
 
 -- #TODO this needs to get ironed out with the return for functions
-scopeTopLevelStmt :: Environment -> TopLevelStmt (TypeRef, NodeId)
-                  -> TopLevelStmt NodeData
-scopeTopLevelStmt env (FuncDef pos (ref, nId) name params ret stmt sig)
+scopeDefinition :: Environment -> Definition (TypeRef, NodeId)
+                  -> Definition NodeData
+scopeDefinition env (FuncDef pos (ref, nId) name params ret stmt sig)
   = let        
     params' = fmap (applyScope env) params
     -- we could potentially handle the return type manually here and not
@@ -276,8 +276,8 @@ scopeTopLevelStmt env (FuncDef pos (ref, nId) name params ret stmt sig)
     env'    = localDefs env $ fmap topVar params'
     topVar a@(VarDef pos' nodeData _) = TopVarDef pos' nodeData a Nothing
     in FuncDef pos (NodeData env' ref nId) name params' ret' stmt' sig
-scopeTopLevelStmt env a@(TypeDef {})   = applyScope env a 
-scopeTopLevelStmt env a@(TopVarDef {}) = applyScope env a 
+scopeDefinition env a@(TypeDef {})   = applyScope env a 
+scopeDefinition env a@(TopVarDef {}) = applyScope env a 
 
 
 scopeModule :: Environment -> Module (TypeRef, NodeId)
@@ -285,7 +285,7 @@ scopeModule :: Environment -> Module (TypeRef, NodeId)
 scopeModule env (Module pos stmts) = let 
     -- we can do this because laziness is awesome
     env' = localDefs env stmts'
-    stmts' = fmap (scopeTopLevelStmt env') stmts
+    stmts' = fmap (scopeDefinition env') stmts
     in Module pos stmts'
 
 
@@ -324,7 +324,7 @@ convertParsedType (FunctionType { argTypes = args
   retRef <- convertParsedType ret
   lift $ newType $ Func argRefs retRef
 
-copySigType :: TopLevelStmt NodeData -> Inferrer TypeRef
+copySigType :: Definition NodeData -> Inferrer TypeRef
 copySigType (TopVarDef { sig = Just typeSig }) = convertTypeSig typeSig
 copySigType (FuncDef { sig = Just typeSig }) = convertTypeSig typeSig
 copySigType (Foreign { sig = Just typeSig }) = convertTypeSig typeSig
@@ -338,7 +338,7 @@ prettyTypeRef :: TypeRef -> Inferrer Doc
 prettyTypeRef _ = return $ text "Look at me! I'm a pretty type!"
 prettyExpr :: Expr a -> Doc
 prettyExpr _ =  text "Look at me! I'm a pretty expression!"
-prettyDef :: TopLevelStmt a -> Doc
+prettyDef :: Definition a -> Doc
 prettyDef _ =  text "Look at me! I'm a pretty definition!"
 
 -- reference expr, expected, inferred
@@ -420,7 +420,7 @@ lookupType pos (Environment env) name = do
     Nothing -> do
       addError $ prettyError pos ("Not in scope: " ++ name) empty
       newType $ Var Nothing NotOverloaded
-    Just topStmt -> inferTopLevelStmt topStmt 
+    Just topStmt -> inferDefinition topStmt 
 
 
 inferExpr :: Expr NodeData -> Inferrer TypeRef
@@ -512,12 +512,12 @@ inferStmt stmt = do
             _ <- unify expr a b
             return ()
         Block { blockBody = (topStmts, stmts)} -> do
-            mapM_ inferTopLevelStmt topStmts
+            mapM_ inferDefinition topStmts
             mapM_ inferStmt stmts
     writeType t (Std Void) -- hmmmm
 
-inferTopLevelStmt :: TopLevelStmt NodeData -> Inferrer TypeRef
-inferTopLevelStmt topStmt = do
+inferDefinition :: Definition NodeData -> Inferrer TypeRef
+inferDefinition topStmt = do
   let t = typeRef $ topStmtNodeData topStmt
   status <- getInferStatus topStmt
   case status of
@@ -539,7 +539,7 @@ inferTopLevelStmt topStmt = do
       tStr <- showType t
       let errorString = sigStr ++ "\n" ++ tStr ++ "\n"
       unify (error ("signature unify error (impossible):\n" ++ errorString)) sigType t
-      inferredType <- inferTopLevelStmtMemo topStmt
+      inferredType <- inferDefinitionMemo topStmt
       setInferStatus topStmt Inferred
       pickPolyMono inferredType
   where
@@ -552,8 +552,8 @@ inferTopLevelStmt topStmt = do
         -- Everything else we want monomorphic
         _ -> return t
 
-inferTopLevelStmtMemo :: TopLevelStmt NodeData -> Inferrer TypeRef
-inferTopLevelStmtMemo topStmt = do
+inferDefinitionMemo :: Definition NodeData -> Inferrer TypeRef
+inferDefinitionMemo topStmt = do
     let t = typeRef $ topStmtNodeData topStmt
     case topStmt of
         TopVarDef { } -> do
@@ -574,9 +574,9 @@ inferTopLevelStmtMemo topStmt = do
     return t
 
 inferModule :: Module NodeData -> Inferrer ()
-inferModule (Module _ topStmts) = mapM_ inferTopLevelStmt topStmts
+inferModule (Module _ topStmts) = mapM_ inferDefinition topStmts
 
-getFuncName :: TopLevelStmt NodeData -> Maybe (String, NodeData)
+getFuncName :: Definition NodeData -> Maybe (String, NodeData)
 getFuncName (FuncDef { funcName        = name
                      , topStmtNodeData = nodeData }) = Just (name, nodeData)
 getFuncName _ = Nothing
@@ -608,7 +608,7 @@ convertTypes decl ref = do
       return $ GenType (CTypeName "error") []
 
 
-specializeModule :: Module NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
+specializeModule :: Module NodeData -> StateT [(NodeId, Definition NodeData)] Inferrer ()
 specializeModule (Module _ topStmts) = 
   mapM_ (uncurry specialize) (catMaybes $ fmap getFuncName topStmts) 
 
@@ -617,7 +617,7 @@ specializeModule (Module _ topStmts) =
 
 
 
-specialize :: String -> NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
+specialize :: String -> NodeData -> StateT [(NodeId, Definition NodeData)] Inferrer ()
 specialize name (NodeData { nodeEnv = Environment env
                           , typeRef = t }) = do
     a <- lookupDef
@@ -656,7 +656,7 @@ specialize name (NodeData { nodeEnv = Environment env
 
 
 
-getNames :: TopLevelStmt NodeData -> [(String, NodeData)]
+getNames :: Definition NodeData -> [(String, NodeData)]
 getNames (TopVarDef {}) = []
 getNames (FuncDef { funcStmt = stmt }) = getStmtNames stmt
 getNames (TypeDef {}) = []
@@ -693,7 +693,7 @@ getExprNames (Literal {}) = []
 checkTypes :: Module NodeData -> Inferrer ()
 checkTypes (Module _ topStmts) = mapM_ checkSignatures topStmts
 
-checkSignatures :: TopLevelStmt NodeData -> Inferrer ()
+checkSignatures :: Definition NodeData -> Inferrer ()
 checkSignatures def@(TopVarDef { topStmtNodeData = nodeData
                            , sig             = Just typeSig }) 
         = checkSig def typeSig (typeRef nodeData)
@@ -703,7 +703,7 @@ checkSignatures def@(FuncDef { topStmtNodeData = nodeData
 checkSignatures _ = return ()
 
 addSigError :: String 
-            -> TopLevelStmt NodeData -> TypeRef -> TypeRef -> Inferrer ()
+            -> Definition NodeData -> TypeRef -> TypeRef -> Inferrer ()
 addSigError msg def expected inferred = do
           pExpected <- prettyTypeRef expected
           pInferred <- prettyTypeRef inferred
@@ -713,7 +713,7 @@ addSigError msg def expected inferred = do
                 text "In definition" <> colon <+> prettyDef def
           addError $ prettyError (topStmtPos def) msg longmsg
 
-checkSig :: TopLevelStmt NodeData -> TypeSig -> TypeRef -> Inferrer ()
+checkSig :: Definition NodeData -> TypeSig -> TypeRef -> Inferrer ()
 checkSig def typeSig t = do
   verifyType <- convertTypeSig typeSig
   sigPassed <- typeEq t verifyType
