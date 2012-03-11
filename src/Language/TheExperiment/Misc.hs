@@ -51,3 +51,16 @@ getAndModifyT f = do
   modifyT f
   return a
 
+
+makeSupply :: [[a]] -> [[a]] -> [[a]]
+makeSupply inits tails = let vars = inits ++ (liftM2 (++) vars tails) in vars
+
+varNames :: [String]
+varNames = makeSupply (words "a b c d e f g h i j k") (words "1 2 3 4 5")
+
+genSym :: (Monad m) => StateT [a] m a
+genSym = do
+  x:xs <- getT
+  putT xs
+  return x
+

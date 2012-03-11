@@ -131,6 +131,7 @@ data VarDef a
 returnId :: String
 returnId = "#return"
 
+-- #TODO this should be renamed to: Definition
 data TopLevelStmt a
         = TopVarDef { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a

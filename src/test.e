@@ -6,7 +6,7 @@ infixl * mul 8
 infixl == eq 1
 
 // this does not work yet
-// :: UInt32 -> UInt32
+:: UInt32 -> UInt32;
 def fact(a):
   if a == 0:
     return 1

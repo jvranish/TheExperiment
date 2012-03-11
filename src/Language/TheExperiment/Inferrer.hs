@@ -1,4 +1,11 @@
-{-#Language GeneralizedNewtypeDeriving #-}
+{-#Language GeneralizedNewtypeDeriving
+          , StandaloneDeriving
+          , DeriveFunctor
+          , DeriveFoldable
+          , DeriveTraversable
+          , FlexibleContexts
+          , UndecidableInstances
+          #-}
 module Language.TheExperiment.Inferrer where
 
 import Text.Parsec.Pos
@@ -13,13 +20,19 @@ import Data.Maybe
 import Data.Foldable
 import Data.Traversable
 
+import Data.FixedList hiding (length)
+import Data.Char
+import qualified Data.List as List
+
 import Text.PrettyPrint
+import Text.PrettyPrint.HughesPJClass
 
 import qualified Data.Map as Map
 
 import Language.TheExperiment.Misc
 import Language.TheExperiment.Type
 import Language.TheExperiment.AST hiding (TypeName)
+import Language.TheExperiment.PrettyPrint
 
 -- #TODO (this is a workaround for the naming clash between Type.hs and AST.hs)
 --  fix this
@@ -31,6 +44,8 @@ import qualified Control.Monad.GraphT as GraphT
 import qualified Control.Monad.ErrorM as ErrorM
 
 import Prelude hiding (concat, concatMap, mapM, mapM_)
+
+import Debug.Trace
 
 -- TODO list:
 {-
@@ -58,7 +73,11 @@ data Environment = Environment
         { valueEnv :: Map.Map String (TopLevelStmt NodeData)
         -- , typeEnv  :: Map.Map String (TypeDef v)
         }
-    deriving (Show)
+
+instance Show Environment where
+  show (Environment a) = "Environment: " ++ show (fmap asdf $ Map.toList a)
+
+asdf (k, v) = (show k, showStuff v)
 
 type NodeId = Int
 
@@ -72,6 +91,77 @@ data NodeData = NodeData { nodeEnv :: Environment
                          , nodeId  :: NodeId
                          }
     deriving (Show)
+
+
+showStuff (TopVarDef {}) = "VarDef"
+showStuff (FuncDef {}) = "FuncDef"
+showStuff (Foreign {}) = "Foreign"
+showStuff (TypeDef {}) = "TypeDef"
+
+
+
+
+
+data EitherF a = EitherF (Either String (Type a))
+  deriving (Eq, Ord, Show, Functor, Foldable, Traversable)
+
+prettyEitherF a = ppParsedType $ convertToParsedType a
+
+deriving instance Foldable (Either e) -- neatest feature ever.
+deriving instance Traversable (Either e)
+
+convertToParsedType (Y (EitherF (Left name))) = AST.TypeVariable undefined name
+convertToParsedType (Y (EitherF (Right (TypeName name)))) =  AST.TypeName undefined name
+convertToParsedType (Y (EitherF (Right (Var (Just name) NotOverloaded)))) =  AST.TypeVariable undefined name
+convertToParsedType (Y (EitherF (Right (Std stdType)))) =  AST.TypeName undefined (show stdType)
+convertToParsedType (Y (EitherF (Right (Func params ret)))) =  AST.FunctionType undefined (fmap convertToParsedType params) (convertToParsedType ret)
+
+
+showType :: TypeRef -> Inferrer String
+showType (TypeRef ref)  = Inferrer $ lift $ showType' ref
+
+showType' :: (Monad m) => GraphT.GraphRef Type -> GraphT.GraphT Type m String
+showType' ref = do
+  (a, t) <- flattenType ref
+  return $ (render $ prettyEitherF a)  ++ " : " ++ (List.intercalate ", " $ fmap showVarDef $ Map.assocs t)
+
+showVarDef :: (String, Y EitherF) -> String
+showVarDef (s, a) = s ++ " = " ++ (render $ prettyEitherF a)
+
+data Y f = Y { unY :: (f (Y f)) }
+{-}
+instance (Pretty (f (Y f))) => Pretty (Y f) where
+  pPrintPrec l p (Y a) = pPrintPrec l p a
+-}
+--flattenType :: (Monad m, Traversable f) => ContextRef t -> ContextT s (f (ContextRef s)) m (Y (EitherF f), Map.Map String (Y (EitherF f)))
+flattenType :: (Monad m) => GraphT.GraphRef Type -> GraphT.GraphT Type m (Y EitherF, Map.Map String (Y EitherF))
+flattenType ref = GraphT.forkMappedContext (ref :. Nil) (EitherF . Right) $ \(ref' :. Nil) ->
+    evalStateT (runStateT (flatten ref') Map.empty) varNames
+
+
+flatten :: (Monad m) => GraphT.GraphRef EitherF -> StateT (Map.Map [Char] (Y EitherF)) (StateT [String] (GraphT.GraphT EitherF m)) (Y EitherF)
+flatten ref = do
+    hasCycle <- lift $ lift $ GraphT.reachableFrom ref ref
+    a <- lift $ lift $ GraphT.readRef ref
+    case a of
+      EitherF (Right (Var _ _)) -> liftM Y $ writeName ref =<< lift genSym
+      _ -> case hasCycle of
+          True -> do {- replace node with new symbol, add symbol to map, fill out that row in the map -}
+            newSym <- liftM (fmap toUpper) $ lift genSym
+            x <- writeName ref newSym
+            flatA <- mapM flatten a
+            modifyT $ Map.insert newSym $ Y flatA
+            return $ Y x
+          False -> liftM Y $ mapM flatten a
+  where
+    writeName ref' varName = do
+      let x = EitherF $ Left varName
+      lift $ lift $ GraphT.writeRef ref' x
+      return x
+
+
+
+
 
 prepareAST :: (Traversable f) => f a -> StateT Int Inferrer (f (TypeRef, NodeId))
 prepareAST t = forM t $ \_ -> do
@@ -87,8 +177,8 @@ infer :: Module a -> ErrorM.ErrorM (Module GenType)
 infer m@(Module pos _) = runInferrer $ do
   m' <- evalStateT (prepareAST m) 0
   let m'' = scopeModule (Environment Map.empty) m'
-  inferModule m''
-  checkTypes m''
+  inferModule m'' -- (traceShow m'' m'')
+  checkTypes (traceShow m'' m'')
   topStmts <- fmap (fmap snd) $ execStateT (specializeModule m'') []
   mapM convertNodeData (Module pos topStmts)
 
@@ -124,6 +214,10 @@ copyWithNewTypes a = Inferrer $ lift $ GraphT.copySubGraphs lense a
 typeEq :: TypeRef -> TypeRef -> Inferrer Bool
 typeEq (TypeRef a) (TypeRef b) = Inferrer $ lift $ GraphT.graphEq a b
 
+refEq :: TypeRef -> TypeRef -> Inferrer Bool
+refEq (TypeRef a) (TypeRef b) = Inferrer $ lift $ GraphT.refEq a b
+
+
 addError :: Doc -> Inferrer ()
 addError d = Inferrer $ lift $ lift $ ErrorM.addError d
 
@@ -146,10 +240,10 @@ localDefs env defs = localEnv env $
     fmap (\stmt -> (getTopLevelName stmt, stmt)) defs
 
 getTopLevelName :: TopLevelStmt NodeData -> String
-getTopLevelName (TopVarDef { varDef      = def }) = varName def
-getTopLevelName (FuncDef   { funcName    = name   }) = name
-getTopLevelName (Foreign   { foreignName = name   }) = name
-getTopLevelName (TypeDef   { typeDefName = name   }) = name
+getTopLevelName (TopVarDef { varDef      = def  }) = varName def
+getTopLevelName (FuncDef   { funcName    = name }) = name
+getTopLevelName (Foreign   { foreignName = name }) = name
+getTopLevelName (TypeDef   { typeDefName = name }) = name
 
 applyScope :: (Functor f) => Environment -> f (TypeRef, NodeId) -> f NodeData
 applyScope env a = fmap (\(ref, nId) -> NodeData env ref nId) a
@@ -250,12 +344,16 @@ prettyDef _ =  text "Look at me! I'm a pretty definition!"
 -- reference expr, expected, inferred
 unify :: Expr NodeData -> TypeRef -> TypeRef -> Inferrer TypeRef
 unify expr expected inferred = do
-        expected' <- readType expected
-        inferred' <- readType inferred
-        unifiedType <- unify' expected' inferred'
-        subsType expected unifiedType
-        subsType inferred unifiedType
-        return unifiedType
+        sameRef <- refEq expected inferred
+        case sameRef of
+          True -> success
+          False -> do 
+            expected' <- readType expected
+            inferred' <- readType inferred
+            unifiedType <- unify' expected' inferred'
+            subsType expected unifiedType
+            subsType inferred unifiedType
+            return unifiedType
     where
         unify' (TypeName a)  (TypeName b) | a == b = success
         unify' (Std a)       (Std b)      | a == b = success
@@ -279,7 +377,9 @@ unify expr expected inferred = do
             case overloads of
               Overloads [x] -> return x
               _ -> newType $ Var (mplus aName bName) overloads
-        unify' _               _           = failure
+        unify' (Var _ _)       _         = return inferred
+        unify' _               (Var _ _) = return expected
+        unify' _               _         = failure
 
         mergeOverloads (Overloads as) (Overloads bs) = do
             us <- intersectByM typeEq as bs
@@ -435,7 +535,10 @@ inferTopLevelStmt topStmt = do
       -- inject signature type here before any actual type has been inferred
       -- if there is no signature, this will have no effect
       sigType <- copySigType topStmt
-      unify undefined sigType t
+      sigStr <- showType sigType
+      tStr <- showType t
+      let errorString = sigStr ++ "\n" ++ tStr ++ "\n"
+      unify (error ("signature unify error (impossible):\n" ++ errorString)) sigType t
       inferredType <- inferTopLevelStmtMemo topStmt
       setInferStatus topStmt Inferred
       pickPolyMono inferredType
@@ -463,11 +566,11 @@ inferTopLevelStmtMemo topStmt = do
             let paramTypes = fmap (typeRef . varDefNodeData) params
             retType <- lookupType (stmtPos stmt) (nodeEnv $ stmtNodeData stmt) returnId 
             --funcType <- newType $ 
+            --retType <- newType $ Var Nothing NotOverloaded
             writeType t $ Func paramTypes retType --funcType
         Foreign { } -> return ()
         -- hmmmm, what should I do here?
         TypeDef { } -> return ()
-
     return t
 
 inferModule :: Module NodeData -> Inferrer ()
@@ -511,6 +614,9 @@ specializeModule (Module _ topStmts) =
 
 -- #TODO foreign functions cannot be specialized.... so we should 
 --   add some protections around them or something
+
+
+
 specialize :: String -> NodeData -> StateT [(NodeId, TopLevelStmt NodeData)] Inferrer ()
 specialize name (NodeData { nodeEnv = Environment env
                           , typeRef = t }) = do
@@ -521,7 +627,7 @@ specialize name (NodeData { nodeEnv = Environment env
         t' <- lift $ copyType t
         -- This will cause a horrible crash if there is a unify failure
         -- #TODO refactor how I do error checking in unify
-        _ <- lift $ unify undefined t' (typeRef $ topStmtNodeData f')
+        _ <- lift $ unify (error "error in specialize") t' (typeRef $ topStmtNodeData f')
         let names = getNames f'
         modify $ ((nodeId $ topStmtNodeData f', f') :)
         mapM_ (uncurry specialize) names
@@ -555,7 +661,7 @@ getNames (TopVarDef {}) = []
 getNames (FuncDef { funcStmt = stmt }) = getStmtNames stmt
 getNames (TypeDef {}) = []
 
--- Assigned name don't count, as they are monomorphic only
+-- Assigned names don't count, as they are monomorphic only
 getStmtNames :: Statement NodeData -> [(String, NodeData)]
 getStmtNames (Assign { assignExpr = expr }) = getExprNames expr
 getStmtNames (If { ifCond = cond,
@@ -594,7 +700,7 @@ checkSignatures def@(TopVarDef { topStmtNodeData = nodeData
 checkSignatures def@(FuncDef { topStmtNodeData = nodeData
                          , sig             = Just typeSig })
         = checkSig def typeSig (typeRef nodeData)
-
+checkSignatures _ = return ()
 
 addSigError :: String 
             -> TopLevelStmt NodeData -> TypeRef -> TypeRef -> Inferrer ()

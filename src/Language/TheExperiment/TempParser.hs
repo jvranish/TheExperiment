@@ -47,7 +47,8 @@ parseModule = do
 
 
 parseTopLevelStmt :: Parser (TopLevelStmt ())
-parseTopLevelStmt = parseVarDef
+-- #TODO can we get rid of this try?
+parseTopLevelStmt = try parseVarDef
                 <|> parseFuncDef
                 <|> parseForeign
                 -- <|> parseTypeDef
@@ -57,11 +58,11 @@ parseSignature :: Parser TypeSig
 parseSignature = do
   reservedOp "::"
   t <- aType
-  reservedOp ";"
   constraints <- liftM (concat . maybeToList) $ 
                     optionMaybe $ do
                       reserved "where"
                       sepBy parseConstraint comma
+  reservedOp ";"
   return $ TypeSig constraints t
 
 parseConstraint :: Parser TypeConstraint

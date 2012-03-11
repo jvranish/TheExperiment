@@ -93,16 +93,30 @@ copySubGraph ref = do
   lookupNew <- copySubGraphWithRespectTo relevantNodes
   lookupNew ref
 
+
+-- #TODO decide on final implementation
 copySubGraphWithRespectTo
   :: (Traversable f, MonadFix m) =>
      [GraphRef f] -> GraphT f m (GraphRef f -> GraphT f m (GraphRef f))
-copySubGraphWithRespectTo relevantNodes = 
+copySubGraphWithRespectTo relevantNodes = do
+  newNodes <- forM relevantNodes $ \x -> do
+      newValue <- readRef x
+      newRef newValue
+  let lookupNew a = liftM fromJust $ lookupRef a $ zip relevantNodes newNodes
+
+  forM newNodes $ \x -> do
+      v <- readRef x
+      writeRef x =<< mapM lookupNew v
+  return lookupNew
+
+{-
   mfix $ \lookupNew -> do
     newNodes <- forM relevantNodes $ \x -> do
       newValue <- readRef x
       newRef =<< mapM lookupNew newValue
     let lookupNew' a = liftM fromJust $ lookupRef a $ zip relevantNodes newNodes
     return lookupNew'
+-}
 
 copySubGraphs
   :: (Traversable f, Traversable t, MonadFix m, Functor m) =>
