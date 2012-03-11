@@ -175,11 +175,11 @@ class NodeType a where
 -- instance NodeType GenType where
 
 
-pos = initialPos "arbitrary source"
 
 instance Arbitrary ParsedType where
   arbitrary = frequency [(10, arbTypeName), (10, arbTypeVariable), (1, arbTypeCall), (1, arbFunctionType)]
     where
+      pos = initialPos "arbitrary source"
       uppers = elements ['A'..'Z']
       lowers = elements ['a'..'z']
       chars = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ['_']
