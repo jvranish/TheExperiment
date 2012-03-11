@@ -4,7 +4,19 @@ import Language.TheExperiment.PrettyPrint
 import Text.Parsec.Pos
 import Language.TheExperiment.AST
 import Text.PrettyPrint.HughesPJ
+import Text.PrettyPrint.HughesPJClass
 
+main :: IO ()
+main = do
+  putStrLn $ render $ pPrint t1
+  putStrLn $ render $ pPrint t2
+  putStrLn $ render $ pPrint t3
+  putStrLn $ render $ pPrint t4
+  putStrLn $ render $ pPrint t5
+
+{- TopVarDefs -}
+
+{- Types -}
 pos = initialPos "pretty source"
 
 tc1 = (TypeCall     { typeFunction = (TypeName { typeName = "TypeCall1", typePos = pos }),
@@ -48,10 +60,3 @@ t5 =
       })
 
 
-main :: IO ()
-main = do
-  putStrLn $ render $ ppParsedType t1
-  putStrLn $ render $ ppParsedType t2
-  putStrLn $ render $ ppParsedType t3
-  putStrLn $ render $ ppParsedType t4
-  putStrLn $ render $ ppParsedType t5
