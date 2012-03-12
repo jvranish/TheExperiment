@@ -5,6 +5,8 @@ import qualified Text.Parsec.Token as T
 
 import Control.Monad
 
+opChars = oneOf ":!#$%&*+./<=>?@\\^|-~"
+
 eLanguageDef = T.LanguageDef
   { T.commentStart    = "/*"
   , T.commentEnd      = "*/"
@@ -12,8 +14,8 @@ eLanguageDef = T.LanguageDef
   , T.nestedComments  = True
   , T.identStart      = letter <|> char '_'
   , T.identLetter     = alphaNum <|> char '_'
-  , T.opStart         = oneOf ":!#$%&*+./<=>?@\\^|-~"
-  , T.opLetter        = oneOf ":!#$%&*+./<=>?@\\^|-~"
+  , T.opStart         = opChars
+  , T.opLetter        = opChars
   , T.reservedOpNames = []
   , T.reservedNames   = ["type", "var", "foreign"]
   , T.caseSensitive   = True
@@ -22,13 +24,13 @@ eLanguageDef = T.LanguageDef
 lexer :: T.TokenParser ()
 lexer = T.makeTokenParser eLanguageDef
 
-parens        = T.parens lexer
-identifier    = T.identifier lexer
-lexeme        = T.lexeme lexer
-comma         = T.comma lexer
-commaSep1     = T.commaSep1 lexer
-symbol        = T.symbol lexer
-reserved      = T.reserved lexer
+parens        = T.parens        lexer
+identifier    = T.identifier    lexer
+lexeme        = T.lexeme        lexer
+comma         = T.comma         lexer
+commaSep1     = T.commaSep1     lexer
+symbol        = T.symbol        lexer
+reserved      = T.reserved      lexer
 stringLiteral = T.stringLiteral lexer
 
 typeIdent  = lexeme $ do
