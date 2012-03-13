@@ -8,13 +8,13 @@ module Language.TheExperiment.Parser
  - 
  - Module
  - \
- -  TopLevelStmt
+ -  Definition
  -   \
  -    Statement
  -    \
  -     Expr
  - 
- - The type parameter to Module, TopLevelStmt, Statement, and Expr is () for
+ - The type parameter to Module, Definition, Statement, and Expr is () for
  - the parser stage. This information is filled in later by the inference
  - engine and the type checker.
  -

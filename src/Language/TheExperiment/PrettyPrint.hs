@@ -2,6 +2,7 @@ module Language.TheExperiment.PrettyPrint where
 
 import Language.TheExperiment.AST
 import Text.PrettyPrint.HughesPJ
+import Text.PrettyPrint.HughesPJClass
 
 data ParenContext = None
                   | FunctionArg
@@ -33,3 +34,6 @@ _ppParsedType FunctionType { argTypes = args,
     args_doc = vcat $ punctuate comma (map (flip _ppParsedType FunctionArg) args)
     ret_doc = _ppParsedType ret FunctionArg
     
+
+instance Pretty ParsedType where
+  pPrint = ppParsedType

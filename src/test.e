@@ -35,3 +35,10 @@ def main(z):
   x = 9
   return fact(x)
 end
+
+
+// main, foo, bar :: UInt32
+// main:
+//   var x
+//   x = 9
+//   return fact(x)

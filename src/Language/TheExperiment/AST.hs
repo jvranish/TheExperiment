@@ -116,7 +116,7 @@ data Statement a
                    }
         | Block    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
-                   , blockBody    :: ([TopLevelStmt a], [Statement a])
+                   , blockBody    :: ([Definition a], [Statement a])
                    }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
@@ -132,7 +132,7 @@ returnId :: String
 returnId = "#return"
 
 -- #TODO this should be renamed to: Definition
-data TopLevelStmt a
+data Definition a
         = TopVarDef { topStmtPos      :: SourcePos
                     , topStmtNodeData :: a
                     , varDef          :: VarDef a
@@ -161,7 +161,7 @@ data TopLevelStmt a
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
                     
 
-data Module a = Module SourcePos [TopLevelStmt a]
+data Module a = Module SourcePos [Definition a]
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 
@@ -175,11 +175,11 @@ class NodeType a where
 -- instance NodeType GenType where
 
 
-pos = initialPos "arbitrary source"
 
 instance Arbitrary ParsedType where
   arbitrary = frequency [(10, arbTypeName), (10, arbTypeVariable), (1, arbTypeCall), (1, arbFunctionType)]
     where
+      pos = initialPos "arbitrary source"
       uppers = elements ['A'..'Z']
       lowers = elements ['a'..'z']
       chars = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ['_']
