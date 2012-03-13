@@ -2,7 +2,7 @@ module Language.TheExperiment.Parser.Type where
 
 import Text.Parsec
 import Text.Parsec.String
-import qualified Text.Parsec.Token as T
+-- import qualified Text.Parsec.Token as T
 
 import Language.TheExperiment.Parser.Lexer
 
