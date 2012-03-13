@@ -5,5 +5,5 @@ module Language.TheExperiment.Parser (
 import Text.Parsec
 import Language.TheExperiment.Parser.Definition
 
--- eParser :: Parser Definition
+eParser :: String -> Either ParseError Definition
 eParser s = parse aDefinition "derp.e" s
