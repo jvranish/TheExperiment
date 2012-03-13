@@ -19,12 +19,14 @@ preBlock :: ParsecT String u (S.State SourcePos) String
 preBlock = do
   s <- many1 alphaNum
   _ <- char ':'
+  spaces
   return s
 
 inBlock :: ParsecT String u (S.State SourcePos) String
 inBlock = do
   s <- many1 alphaNum
   _ <- char ';'
+  spaces
   return s
 
 aBlock :: ParsecT String u (S.State SourcePos) (String, [String])
