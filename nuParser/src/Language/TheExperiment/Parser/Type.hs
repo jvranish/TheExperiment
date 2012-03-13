@@ -1,8 +1,6 @@
 module Language.TheExperiment.Parser.Type where
 
 import Text.Parsec
-import Text.Parsec.String
--- import qualified Text.Parsec.Token as T
 
 import Language.TheExperiment.Parser.Lexer
 
@@ -22,13 +20,13 @@ data ParsedType = TypeName      { typePos :: SourcePos
                                 }
   deriving (Show, Eq, Ord)
 
-aTypeName :: Parser ParsedType
+aTypeName :: EParser ParsedType
 aTypeName = lexeme $ liftMp TypeName typeIdent
 
-aTypeVariable :: Parser ParsedType
+aTypeVariable :: EParser ParsedType
 aTypeVariable = lexeme $ liftMp TypeVariable varIdent
 
-aTypeCall :: Parser ParsedType
+aTypeCall :: EParser ParsedType
 aTypeCall = do
     pos         <- getPosition
     typeFunc    <- aTypeTerm
@@ -40,10 +38,10 @@ aTypeCall = do
                               , typeParams   = typeParams'
                               }
 
-aTypeTerm :: Parser ParsedType
+aTypeTerm :: EParser ParsedType
 aTypeTerm = aTypeName <|> aTypeVariable <|> parens aParsedType <?> "Type Term"
 
-aParsedType :: Parser ParsedType
+aParsedType :: EParser ParsedType
 aParsedType = do
   pos        <- getPosition
   paramTypes <- sepBy1 aTypeCall comma

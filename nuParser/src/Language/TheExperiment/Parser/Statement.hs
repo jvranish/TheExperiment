@@ -1,42 +1,38 @@
 module Language.TheExperiment.Parser.Statement where
 
-import Control.Monad.Trans
 import qualified Control.Monad.State as S
 
 import Text.Parsec
-
--- import Text.Parsec.Pos
--- import Text.Parsec.String
 import Text.Parsec.Indent
--- import qualified Text.Parsec.Token as T
 
--- import Language.TheExperiment.Parser.Lexer
+import Language.TheExperiment.Parser.Lexer
 
 data Statement = Statement
   deriving (Show, Eq, Ord)
 
-preBlock :: ParsecT String u (S.State SourcePos) String
-preBlock = do
+preBlock :: EParser String
+preBlock = lexeme $ do
   s <- many1 alphaNum
   _ <- char ':'
   spaces
   return s
 
-inBlock :: ParsecT String u (S.State SourcePos) String
-inBlock = do
+inBlock :: EParser String
+inBlock = lexeme $ do
   s <- many1 alphaNum
   _ <- char ';'
-  spaces
   return s
 
-aBlock :: ParsecT String u (S.State SourcePos) (String, [String])
+aBlock :: ParsecT String () (S.State SourcePos) (String, [String])
 aBlock = withBlock (,) preBlock inBlock
 
-s = unlines [
+test_s :: String
+test_s = unlines [
   "foo:",
   "  bar;",
   "  baz;"
   ]
 
+parseBlock :: Either ParseError (String, [String])
 parseBlock = let name = "derp.e"
-             in runIndent name $ runParserT aBlock () name s
+             in runIndent name $ runParserT aBlock () name test_s

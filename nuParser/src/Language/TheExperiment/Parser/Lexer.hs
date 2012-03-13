@@ -1,32 +1,34 @@
 module Language.TheExperiment.Parser.Lexer where
 
 import Text.Parsec
-import Text.Parsec.String
 import qualified Text.Parsec.Token as T
 
 import Control.Monad
+import qualified Control.Monad.State as S
+
+type EParser a = ParsecT String () (S.State SourcePos) a
 
 opChars :: Monad m => ParsecT String u m Char
 opChars = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
-typeIdent :: Parser String
+typeIdent :: EParser String
 typeIdent = T.identifier $ T.makeTokenParser 
           $ eLanguageDef { T.identStart = oneOf ['A'..'Z'] }
 
-varIdent :: Parser String
+varIdent :: EParser String
 varIdent  = T.identifier $ T.makeTokenParser
           $ eLanguageDef { T.identStart = oneOf ['a'..'z'] }
   
-liftMp :: (SourcePos -> a -> b) -> Parser a -> Parser b
+liftMp :: (SourcePos -> a -> b) -> EParser a -> EParser b
 liftMp  f = liftM2 f getPosition
 
-liftM2p :: (SourcePos -> a -> b -> c) -> Parser a -> Parser b -> Parser c
+liftM2p :: (SourcePos -> a -> b -> c) -> EParser a -> EParser b -> EParser c
 liftM2p f = liftM3 f getPosition
 
-liftM3p :: (SourcePos -> a -> b -> c -> d) -> Parser a -> Parser b -> Parser c -> Parser d
+liftM3p :: (SourcePos -> a -> b -> c -> d) -> EParser a -> EParser b -> EParser c -> EParser d
 liftM3p f = liftM4 f getPosition
 
-eLanguageDef :: T.LanguageDef a
+eLanguageDef :: Monad m => T.GenLanguageDef String u m
 eLanguageDef = T.LanguageDef
   { T.commentStart    = "/*"
   , T.commentEnd      = "*/"
@@ -41,32 +43,32 @@ eLanguageDef = T.LanguageDef
   , T.caseSensitive   = True
   }
 
-lexer :: T.TokenParser ()
+lexer :: Monad m => T.GenTokenParser String () m
 lexer = T.makeTokenParser eLanguageDef
 
-parens :: Parser a -> Parser a
+parens :: EParser a -> EParser a
 parens = T.parens lexer
 
-identifier :: Parser String
+identifier :: EParser String
 identifier = T.identifier lexer
 
-lexeme :: Parser a -> Parser a
+lexeme :: EParser a -> EParser a
 lexeme = T.lexeme lexer
 
-comma :: Parser String
+comma :: EParser String
 comma = T.comma lexer
 
-commaSep1 :: Parser a -> Parser [a]
+commaSep1 :: EParser a -> EParser [a]
 commaSep1 = T.commaSep1 lexer
 
-symbol :: String -> Parser String
+symbol :: String -> EParser String
 symbol = T.symbol lexer
 
-reserved :: String -> Parser ()
+reserved :: String -> EParser ()
 reserved = T.reserved lexer
 
-reservedOp :: String -> Parser ()
+reservedOp :: String -> EParser ()
 reservedOp = T.reservedOp lexer
 
-stringLiteral :: Parser String
+stringLiteral :: EParser String
 stringLiteral = T.stringLiteral lexer

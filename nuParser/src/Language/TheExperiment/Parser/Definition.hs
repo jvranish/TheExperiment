@@ -1,7 +1,6 @@
 module Language.TheExperiment.Parser.Definition where
 
 import Text.Parsec
-import Text.Parsec.String
 
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Type
@@ -31,7 +30,7 @@ data Definition = TypeDef { defnPos     :: SourcePos
                               }
   deriving (Show, Eq, Ord)
 
-aDefinition :: Parser Definition
+aDefinition :: EParser Definition
 aDefinition = try aTypeSignature -- must come before function def
           <|> try aFunctionDef
           <|> aTypeDef
@@ -40,7 +39,7 @@ aDefinition = try aTypeSignature -- must come before function def
 
 {--}
 
-aTypeDef :: Parser Definition
+aTypeDef :: EParser Definition
 aTypeDef = do
   p <- getPosition
   _ <- reserved "type"
@@ -49,7 +48,7 @@ aTypeDef = do
   t <- aParsedType
   return $ TypeDef p v t
 
-aTypeSignature :: Parser Definition
+aTypeSignature :: EParser Definition
 aTypeSignature = do
   p  <- getPosition
   vs <- commaSep1 varIdent
@@ -57,14 +56,14 @@ aTypeSignature = do
   t  <- aParsedType
   return $ TypeSignature p vs t
 
-aVariableDef :: Parser Definition
+aVariableDef :: EParser Definition
 aVariableDef = do
   p <- getPosition
   _ <- reserved "var"
   v <- varIdent
   return $ VariableDef p v
 
-aForeignDef :: Parser Definition
+aForeignDef :: EParser Definition
 aForeignDef = do
   p <- getPosition
   _ <- reserved "foreign"
@@ -73,7 +72,7 @@ aForeignDef = do
   t <- aParsedType
   return $ ForeignDef p l f t
 
-aFunctionDef :: Parser Definition
+aFunctionDef :: EParser Definition
 aFunctionDef = do
   p  <- getPosition
   n  <- varIdent
