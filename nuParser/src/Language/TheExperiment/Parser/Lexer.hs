@@ -31,16 +31,13 @@ comma         = T.comma         lexer
 commaSep1     = T.commaSep1     lexer
 symbol        = T.symbol        lexer
 reserved      = T.reserved      lexer
+reservedOp    = T.reservedOp    lexer
 stringLiteral = T.stringLiteral lexer
 
-typeIdent  = lexeme $ do
-  f <- oneOf ['A'..'Z']
-  r <- many $ alphaNum <|> char '_'
-  return $ f : r
-varIdent   = lexeme $ do
-  f <- oneOf $ '_' : ['a'..'z']
-  r <- many $ alphaNum <|> char '_'
-  return $ f : r
+typeIdent = T.identifier $ T.makeTokenParser 
+          $ eLanguageDef { T.identStart = oneOf ['A'..'Z'] }
+varIdent  = T.identifier $ T.makeTokenParser
+          $ eLanguageDef { T.identStart = oneOf ['a'..'z'] }
   
 liftMp  f = liftM2 f getPosition
 liftM2p f = liftM3 f getPosition

@@ -7,26 +7,26 @@ import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Type
 import Language.TheExperiment.Parser.Statement
 
-data Definition = TypeDef { defnPos :: SourcePos
+data Definition = TypeDef { defnPos     :: SourcePos
                           , typeDefName :: String
                           , typeDefType :: ParsedType
-                          } |
-                  TypeSignature { defnPos :: SourcePos
+                          }
+                | TypeSignature { defnPos      :: SourcePos
                                 , typeSigNames :: [String]
-                                , typeSigType :: ParsedType
-                                } |
-                  VariableDef { defnPos :: SourcePos
+                                , typeSigType  :: ParsedType
+                                }
+                | VariableDef { defnPos         :: SourcePos
                               , variableDefName :: String
                               -- , initExpr :: Maybe (Expr a)
-                              } |
-                  ForeignDef { defnPos :: SourcePos
+                              }
+                | ForeignDef { defnPos       :: SourcePos
                              , nativeDefName :: String
-                             , foreignName :: String
+                             , foreignName   :: String
                              , nativeDefType :: ParsedType
-                             } | -- foreign cFunction "c_function" (Int -> Int)
-                  FunctionDef { defPos :: SourcePos
-                              , functionName :: String
-                              , functionArgs :: [String]
+                             } -- foreign cFunction "c_function" (Int -> Int)
+                | FunctionDef { defnPos           :: SourcePos
+                              , functionName      :: String
+                              , functionArgs      :: [String]
                               , functionStatement :: Statement
                               }
   deriving (Show, Eq, Ord)
@@ -45,7 +45,7 @@ aTypeDef = do
   p <- getPosition
   _ <- reserved "type"
   v <- typeIdent
-  _ <- symbol "="
+  _ <- reservedOp "="
   t <- aParsedType
   return $ TypeDef p v t
 
@@ -53,7 +53,7 @@ aTypeSignature :: Parser Definition
 aTypeSignature = do
   p  <- getPosition
   vs <- commaSep1 varIdent
-  _  <- symbol "::"
+  _  <- reservedOp "::"
   t  <- aParsedType
   return $ TypeSignature p vs t
 
@@ -78,5 +78,5 @@ aFunctionDef = do
   p  <- getPosition
   n  <- varIdent
   as <- option [] $ parens $ commaSep1 varIdent
-  _  <- symbol ":"
+  _  <- reservedOp ":"
   return $ FunctionDef p n as Statement
