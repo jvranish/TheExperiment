@@ -1,11 +1,14 @@
 module Main where
 
 import Language.TheExperiment.Parser
--- import Language.TheExperiment.Parser.Statement
+import Language.TheExperiment.Parser.Statement
 
 main :: IO ()
 main = do
+  putStrLn "-----Normal------"
   normal
+  putStrLn "-----Indent------"
+  indent
 
 normal :: IO ()
 normal = do
@@ -18,6 +21,6 @@ normal = do
   print $ eParser "foo:"
   print $ eParser "foo(a,b):"
 
--- indent :: IO ()
--- indent = do
---   print $ parseBlock
+indent :: IO ()
+indent = do
+  print parseBlock
