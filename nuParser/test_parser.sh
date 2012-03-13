@@ -1,1 +1,1 @@
-runhaskell -Wall -isrc tests/test_parser.hs
+runhaskell -Wall -isrc test/test_parser.hs

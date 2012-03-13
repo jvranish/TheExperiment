@@ -1,7 +1,5 @@
 module Language.TheExperiment.Parser.Statement where
 
-import qualified Control.Monad.State as S
-
 import Text.Parsec
 import Text.Parsec.Indent
 
@@ -23,14 +21,14 @@ inBlock = lexeme $ do
   _ <- char ';'
   return s
 
-aBlock :: ParsecT String () (S.State SourcePos) (String, [String])
+aBlock :: EParser (String, [String])
 aBlock = withBlock (,) preBlock inBlock
 
 test_s :: String
 test_s = unlines [
-  "foo:",
-  "  bar;",
-  "  baz;"
+  "foo: boop;",
+  "     bar;",
+  "     baz;"
   ]
 
 parseBlock :: Either ParseError (String, [String])
