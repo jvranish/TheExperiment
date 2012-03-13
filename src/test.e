@@ -5,6 +5,18 @@ infixl * mul 8
 
 infixl == eq 1
 
+:: UInt32, UInt32 -> UInt32;
+foreign add
+
+:: UInt32, UInt32 -> UInt32;
+foreign sub
+
+:: UInt32, UInt32 -> UInt32;
+foreign mul
+
+:: UInt32, UInt32 -> Bool;
+foreign eq
+
 // this does not work yet
 :: UInt32 -> UInt32;
 def fact(a):
@@ -16,7 +28,8 @@ def fact(a):
   end
 end
 
-def main():
+:: UInt32 -> UInt32;
+def main(z):
   :: UInt32;
   var x
   x = 9

@@ -49,7 +49,7 @@ parseModule = do
 parseTopLevelStmt :: Parser (TopLevelStmt ())
 -- #TODO can we get rid of this try?
 parseTopLevelStmt = try parseVarDef
-                <|> parseFuncDef
+                <|> try parseFuncDef
                 <|> parseForeign
                 -- <|> parseTypeDef
                 <?> "definition"
@@ -117,7 +117,7 @@ parseForeign = do
   name <- identifier
   return $ Foreign { topStmtPos = pos
                    , topStmtNodeData = ()
-                   , foreignName = name
+                   , foreignName = "Builtin." ++ name
                    , sig = typeSig
                    }
 

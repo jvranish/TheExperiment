@@ -68,8 +68,11 @@ data RecFields a = Fields (Map.Map String a)
 noRecFields :: RecFields a
 noRecFields = Fields Map.empty
 
-data Overloads a = NotOverloaded
-                 | Overloads [a] -- potential types
+-- #TODO consider making this just a list
+--   I think it would simplify the logic in many places
+--  (perhaps just a newtype'd list)
+
+newtype Overloads a = Overloads [a] -- potential types
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data FlatType = FlatType (Type FlatType)
