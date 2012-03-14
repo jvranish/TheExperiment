@@ -1,14 +1,10 @@
 module Main where
 
 import Language.TheExperiment.Parser
-import Language.TheExperiment.Parser.Statement
 
 main :: IO ()
 main = do
-  putStrLn "-----Normal------"
   normal
-  putStrLn "-----Indent------"
-  indent
 
 normal :: IO ()
 normal = do
@@ -18,9 +14,11 @@ normal = do
   print $ eParser "x :: Int"
   print $ eParser "x,y , z :: Int"
   print $ eParser "foreign cFoo \"c_foo\" (Int -> Int)"
-  print $ eParser "foo:"
-  print $ eParser "foo(a,b):"
-
-indent :: IO ()
-indent = do
-  print parseBlock
+  print $ eParser $ unlines ["def foo(a,b): var x",
+                             "              var y"]
+  print $ eParser $ unlines ["def foo(a,b):",
+                             "  def bar(x,y):",
+                             "    var a",
+                             "    var b",
+                             "  var c",
+                             "  return 9"]

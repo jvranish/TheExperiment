@@ -1,11 +1,19 @@
-module Language.TheExperiment.Parser.Literals (aLiteral) where
+module Language.TheExperiment.Parser.Literal where
 
 import Numeric
 import Data.Maybe
-import Text.Parsec hiding (spaces)
-import Text.Parsec.String
+import Text.Parsec
 
-import Language.TheExperiment.AST
+import Language.TheExperiment.Parser.Lexer
+
+data Literal = StringLiteral String
+             | CharLiteral Char
+             | IntegerLiteral Integer
+             | BinLiteral Integer
+             | HexLiteral Integer
+             | OctalLiteral Integer
+             | FloatLiteral String Double -- String is parsed representation.
+    deriving (Show, Eq, Ord)
 
 readStdInt :: Num a => a -> String -> a
 readStdInt base str = val
@@ -16,7 +24,7 @@ readStdInt base str = val
     validDigit = (`elem` digits)
     digitValue x = fromJust $ lookup x (zip digits values)
 
-aStringLiteral :: Parser Literal
+aStringLiteral :: EParser Literal
 aStringLiteral = do
   _ <- char '"'
   s <- many $ noneOf "\""
@@ -24,7 +32,7 @@ aStringLiteral = do
 
   return $ StringLiteral s
 
-aCharLiteral :: Parser Literal
+aCharLiteral :: EParser Literal
 aCharLiteral = do
   _ <- char '\''
   c <- noneOf "\'"
@@ -32,7 +40,7 @@ aCharLiteral = do
 
   return $ CharLiteral c
 
-aFloatLiteral :: Parser Literal
+aFloatLiteral :: EParser Literal
 aFloatLiteral = do
   whole <- many1 $ oneOf ['0'..'9']
   d     <- char '.'
@@ -41,29 +49,29 @@ aFloatLiteral = do
   let str = whole ++ (d : frac)
   return $ FloatLiteral str (read str)
 
-aNumericLiteral :: Char -> [Char] -> (Integer -> Literal) -> Parser Literal
+aNumericLiteral :: Char -> [Char] -> (Integer -> Literal) -> EParser Literal
 aNumericLiteral prefix digits cons = do
   _ <- char '0'
   _ <- char prefix
   lit <- many1 $ oneOf digits
   return $ cons $ readStdInt (fromIntegral $ length digits) lit
 
-aBinLiteral :: Parser Literal
+aBinLiteral :: EParser Literal
 aBinLiteral = aNumericLiteral 'b' ['0'..'1'] BinLiteral
 
-aHexLiteral :: Parser Literal
+aHexLiteral :: EParser Literal
 aHexLiteral = aNumericLiteral 'x' (['0'..'9'] ++ ['A'..'F']) HexLiteral
 
-aOctalLiteral :: Parser Literal
+aOctalLiteral :: EParser Literal
 aOctalLiteral = aNumericLiteral 'o' ['0'..'7'] OctalLiteral
 
-aDecLiteral :: Parser Literal
+aDecLiteral :: EParser Literal
 aDecLiteral = do
   lit <- many1 $ oneOf ['0'..'9']
   return $ IntegerLiteral $ readStdInt 10 lit
 
 
-aLiteral :: Parser Literal
+aLiteral :: EParser Literal
 aLiteral = try aStringLiteral
        <|> try aCharLiteral
        <|> try aFloatLiteral

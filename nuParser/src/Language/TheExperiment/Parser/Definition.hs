@@ -1,10 +1,11 @@
 module Language.TheExperiment.Parser.Definition where
 
 import Text.Parsec
+import Text.Parsec.Indent
 
-import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Type
-import Language.TheExperiment.Parser.Statement
+import Language.TheExperiment.Parser.Lexer
+import Language.TheExperiment.Parser.Expression
 
 data Definition = TypeDef { defnPos     :: SourcePos
                           , typeDefName :: String
@@ -16,7 +17,7 @@ data Definition = TypeDef { defnPos     :: SourcePos
                                 }
                 | VariableDef { defnPos         :: SourcePos
                               , variableDefName :: String
-                              -- , initExpr :: Maybe (Expr a)
+                              -- , initializationExpr :: Maybe (Expr a)
                               }
                 | ForeignDef { defnPos       :: SourcePos
                              , nativeDefName :: String
@@ -30,12 +31,20 @@ data Definition = TypeDef { defnPos     :: SourcePos
                               }
   deriving (Show, Eq, Ord)
 
+data Statement = Block  { stmtPos    :: SourcePos
+                        , blockBody  :: [Either Definition Statement]
+                        }
+               | Return { stmtPos    :: SourcePos
+                        , returnExpr :: Expr
+                        }
+  deriving (Show, Eq, Ord)
+
 aDefinition :: EParser Definition
-aDefinition = try aTypeSignature -- must come before function def
-          <|> try aFunctionDef
-          <|> aTypeDef
+aDefinition = aTypeDef
+          <|> aTypeSignature
           <|> aVariableDef
           <|> aForeignDef
+          <|> aFunctionDef
 
 {--}
 
@@ -75,7 +84,36 @@ aForeignDef = do
 aFunctionDef :: EParser Definition
 aFunctionDef = do
   p  <- getPosition
+  _  <- reserved "def"
   n  <- varIdent
   as <- option [] $ parens $ commaSep1 varIdent
   _  <- reservedOp ":"
-  return $ FunctionDef p n as Statement
+  s  <- aStatement
+  return $ FunctionDef p n as s
+
+aStatement :: EParser Statement
+aStatement = do
+  aReturn <|> aBlock
+
+aBlock :: EParser Statement
+aBlock = do
+  p <- getPosition
+  b <- block defOrStmt
+  return $ Block p b
+  where
+    defOrStmt = do
+      d <- optionMaybe aDefinition
+      case d of
+        Just d' -> return $ Left d'
+        Nothing -> do
+          s <- optionMaybe aStatement
+          case s of
+            Just s' -> return $ Right s'
+            Nothing -> fail "Expected a Definition or a Statement, found enither."
+
+aReturn :: EParser Statement
+aReturn = do
+  p <- getPosition
+  _ <- reserved "return"
+  e <- anExpr
+  return $ Return p e
