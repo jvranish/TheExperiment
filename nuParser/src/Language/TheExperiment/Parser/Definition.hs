@@ -37,6 +37,10 @@ data Statement = Block  { stmtPos    :: SourcePos
                | Return { stmtPos    :: SourcePos
                         , returnExpr :: Expr
                         }
+               -- Assign
+               -- If
+               -- While
+               -- ExprStmt
   deriving (Show, Eq, Ord)
 
 aDefinition :: EParser Definition
