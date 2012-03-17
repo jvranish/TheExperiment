@@ -191,9 +191,10 @@ genTopLevel (TypeDef { topStmtPos = pos
                      , typeDefName = name } ) 
             = CDeclExt $ genTypeDef pos name t
 genTopLevel (FuncDef { topStmtPos = pos
-                     , topStmtNodeData = GenType retType _
+                     , topStmtNodeData = _
                      , funcName = name
                      , funcParams = params
+                     , funcRet = VarDef { varDefNodeData = GenType retType _ }
                      , funcStmt = stmt } ) 
             = CFDefExt $ genFuncDef pos name params retType stmt
 

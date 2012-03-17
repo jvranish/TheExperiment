@@ -59,7 +59,7 @@ data Type a = TypeName String
             -}
             -- optional name, list of record fields and their types (empty for
             --  non-structures), Just overloads
-            | Var (Maybe String) {- (RecFields a) -} (Overloads a)
+            | Var (Maybe String) {- (RecFields a) -} [a]
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data RecFields a = Fields (Map.Map String a)

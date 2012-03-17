@@ -310,7 +310,7 @@ parseOpDef = parseOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
           return $ Identifier { exprPos = pos
                               , exprNodeData = ()
                               -- #TODO find a more general solution here:
-                              , idName = "Buildin." ++ name
+                              , idName = "Builtin." ++ name
                               , opFormat = fixityCons precedence }
       return (opCons opParser, precedence)
     call f a    = call' f [a]

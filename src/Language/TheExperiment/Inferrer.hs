@@ -11,7 +11,7 @@ module Language.TheExperiment.Inferrer where
 import Text.Parsec.Pos
 
 import Control.Applicative hiding (empty)
-import Control.Monad hiding (mapM, mapM_, forM)
+import Control.Monad hiding (msum, mapM, mapM_, forM)
 import Control.Monad.Trans.State
 import Control.Monad.Trans
 
@@ -166,7 +166,7 @@ flatten ref = do
 
 prepareAST :: (Traversable f) => f a -> StateT Int Inferrer (f (TypeRef, NodeId))
 prepareAST t = forM t $ \_ -> do
-  ref <- lift $ newType $ Var Nothing (Overloads [])
+  ref <- lift $ newType $ Var Nothing []
   n <- getAndModifyT (+1)
   return (ref, n)
 
@@ -179,7 +179,7 @@ infer m@(Module pos _) = runInferrer $ do
   m' <- evalStateT (prepareAST m) 0
   let m'' = scopeModule (Environment Map.empty) m'
   inferModule m'' -- (traceShow m'' m'')
-  checkTypes (traceShow m'' m'')
+  checkTypes (trace (render $ pPrintModule m'') m'')
   topStmts <- fmap (fmap snd) $ execStateT (specializeModule m'') []
   mapM convertNodeData (Module pos topStmts)
 
@@ -302,7 +302,7 @@ makeConstraint :: TypeConstraint
                -> StateT (Map.Map String TypeRef) Inferrer (String, TypeRef)
 makeConstraint (TypeConstraint name constraints) = do
   constraintRefs <- mapM convertParsedType constraints
-  var <- lift $ newType $ Var (Just name) (Overloads constraintRefs) 
+  var <- lift $ newType $ Var (Just name) constraintRefs
   return (name, var)
 
 convertParsedType :: ParsedType
@@ -317,7 +317,7 @@ convertParsedType (TypeVariable { typeVariable = name }) = do
     case Map.lookup name table of
       Just ref -> return (ref, table)
       Nothing  -> do
-        ref <- newType $ Var (Just name) (Overloads [])
+        ref <- newType $ Var (Just name) []
         return (ref, Map.insert name ref table)
 -- #TODO
 -- convertParsedType (TypeCall {  })  unsupported for the moment
@@ -331,7 +331,7 @@ copySigType :: Definition NodeData -> Inferrer TypeRef
 copySigType (TopVarDef { sig = Just typeSig }) = convertTypeSig typeSig
 copySigType (FuncDef { sig = Just typeSig }) = convertTypeSig typeSig
 copySigType (Foreign { sig = Just typeSig }) = convertTypeSig typeSig
-copySigType _ = newType $ Var Nothing (Overloads [])
+copySigType _ = newType $ Var Nothing []
 
       
 prettyError :: SourcePos -> String -> Doc -> Doc
@@ -340,9 +340,9 @@ prettyError pos msg longmsg = text "Error in" <+> text (show pos) <> colon <+> t
 prettyTypeRef :: TypeRef -> Inferrer Doc
 prettyTypeRef t = liftM text $ showType t --return $ text "Look at me! I'm a pretty type!"
 prettyExpr :: Expr a -> Doc
-prettyExpr _ =  text "Look at me! I'm a pretty expression!"
+prettyExpr e = pPrintExpr e
 prettyDef :: Definition a -> Doc
-prettyDef _ =  text "Look at me! I'm a pretty definition!"
+prettyDef = pPrintDef
 
 -- reference expr, expected, inferred
 unify :: Expr NodeData -> TypeRef -> TypeRef -> Inferrer TypeRef
@@ -374,37 +374,32 @@ unify expr expected inferred = do
             params <- unifyList aParams bParams
             ret <- unify expr aRet bRet
             newType $ Func params ret
-        unify' (Var aName aOverloads) 
-               (Var bName bOverloads) = do
-            overloads <- mergeOverloads aOverloads bOverloads
-            case overloads of
-              Overloads [x] -> return x
-              _ -> newType $ Var (mplus aName bName) overloads
-        unify' (Var _ xs)  _  = resolveOverload xs (Overloads [inferred])
-        unify' _  (Var _ xs)  = resolveOverload xs (Overloads [expected])
-        unify' _               _         = failure
+        unify' (Var aName aConstraints) (Var bName bConstraints) =
+          resolveConstraints [aName, bName] aConstraints bConstraints
 
-        resolveOverload aOverloads bOverloads = do
-          overloads <- mergeOverloads aOverloads bOverloads
-          case overloads of
-            Overloads [x] -> return x
-            _ -> do 
-              addUnifyError "Unified with type that is not a valid overload"
-              -- #TODO add list of possible overloads
-              failure
+        unify' (Var aName aConstraints) _                        =
+          resolveConstraints [aName]        aConstraints [inferred]
 
+        unify' _                        (Var bName bConstraints) =
+          resolveConstraints [bName]        bConstraints [expected]
 
+        unify' _                        _                        = failure
 
-        mergeOverloads (Overloads []) b = return b
-        mergeOverloads a (Overloads []) = return a
-        mergeOverloads (Overloads as) (Overloads bs) = do
-            us <- intersectByM typeEq as bs
-            case us of
-                [] -> do
-                    addUnifyError "Could not find compatible overload."
-                    return (Overloads [])
-                _ -> return $ Overloads us
-        
+        resolveConstraints names [] [] = resolveVar names []
+        resolveConstraints names [] xs = resolveVar names xs
+        resolveConstraints names xs [] = resolveVar names xs
+        resolveConstraints names xs ys = do
+          c <- intersectByM typeEq xs ys
+          case c of
+              [] -> do
+                  -- #TODO display the two constraint sets
+                  addUnifyError "Incompatible Constraints."
+                  resolveVar names []
+              _ -> resolveVar names c
+
+        resolveVar _     [x] = return x
+        resolveVar names xs  = newType $ Var (msum names) xs
+
 
         unifyList (x:xs) (y:ys) = do
             u <- unify expr x y
@@ -434,7 +429,7 @@ lookupType pos (Environment env) name = do
   case Map.lookup name env of
     Nothing -> do
       addError $ prettyError pos ("Not in scope: " ++ name) empty
-      newType $ Var Nothing (Overloads [])
+      newType $ Var Nothing []
     Just topStmt -> inferDefinition topStmt 
 
 
@@ -448,9 +443,10 @@ inferExpr expr = let
 
             f' <- inferExpr f
             params' <- mapM inferExpr params
-            retType <- newType $ Var Nothing (Overloads [])
+            retType <- newType $ Var Nothing []
             inferredF <- newType $ Func params' retType
             unify expr f' inferredF
+            return retType
         Identifier { idName = name } -> do
             a <- lookupType (exprPos expr) (nodeEnv $ exprNodeData expr) name -- do I put the inferrer in the lookup?
             unify expr t a
@@ -464,7 +460,7 @@ inferExpr expr = let
                 FloatLiteral _ _ -> do
                     doubleType <- newType $ Std F64
                     floatType <- newType $ Std F32
-                    newType $ Var Nothing $ Overloads [doubleType, floatType]
+                    newType $ Var Nothing [doubleType, floatType]
                 IntegerLiteral n -> inferInteger n
                 BinLiteral n -> inferInteger n
                 HexLiteral n -> inferInteger n
@@ -480,8 +476,8 @@ inferExpr expr = let
         [] -> do
           addError $ prettyError (exprPos expr)
             "Integer is too big to fit in C type" empty 
-          newType $ Var Nothing (Overloads [])
-        _ -> newType $ Var Nothing $ Overloads allowableTypes
+          newType $ Var Nothing []
+        _ -> newType $ Var Nothing allowableTypes
       where
           validInts t | isValidInt t n = [Std $ IntType t] 
                       | otherwise      = []
@@ -531,6 +527,7 @@ inferStmt stmt = do
             mapM_ inferStmt stmts
     writeType t (Std Void) -- hmmmm
 
+-- #TODO replace topStmt with 'def' or something
 inferDefinition :: Definition NodeData -> Inferrer TypeRef
 inferDefinition topStmt = do
   let t = typeRef $ topStmtNodeData topStmt
@@ -576,16 +573,20 @@ inferDefinitionMemo topStmt = do
             --  initialization expressions 
             return ()
         FuncDef { funcStmt   = stmt
-                , funcParams = params } -> do
+                , funcName   = name
+                , funcParams = params
+                , funcRet    = VarDef { varDefNodeData = varData } } -> do
             inferStmt stmt
-            let paramTypes = fmap (typeRef . varDefNodeData) params
-            retType <- lookupType (stmtPos stmt) (nodeEnv $ stmtNodeData stmt) returnId 
+            tStr <- showType t
+            let paramTypes = trace (name ++ ": " ++ tStr ++ "\n") $ fmap (typeRef . varDefNodeData) params
+            --retType <- lookupType (stmtPos stmt) (nodeEnv $ stmtNodeData stmt) returnId 
+            let retType = typeRef $ varData
             --funcType <- newType $ 
             --retType <- newType $ Var Nothing NotOverloaded
             -- writeType t $ Func paramTypes retType --funcType
             q <- newType $ Func paramTypes retType --funcType
             sigStr <- showType q
-            tStr <- showType t
+            
             let errorString = sigStr ++ "\n" ++ tStr ++ "\n"
             unify (error $ "lv inferrer\n" ++ errorString) t q
             return ()
@@ -621,8 +622,8 @@ convertTypes decl ref = do
         case n' of
           (NType n'') -> convertTypes ((CArrayDecl [] n''):decl) a
           _           -> convertError "bad array length type"
-      Func _ _  -> convertError "we do not support function types yet"
-      Var _ _   -> convertError "Something is broken. Var in output"
+      Func _ _  -> return $ GenType (CStd (IntType Int8)) decl -- convertError "we do not support function types yet"
+      Var _ _   -> return $ GenType (CStd (IntType Int8)) decl -- convertError "Something is broken. Var in output"
   where
     convertError msg = do
       addError $ text msg
@@ -638,7 +639,8 @@ specializeModule (Module _ topStmts) =
 
 
 
-specialize :: String -> NodeData -> StateT [(NodeId, Definition NodeData)] Inferrer ()
+specialize :: String -> NodeData 
+           -> StateT [(NodeId, Definition NodeData)] Inferrer ()
 specialize name (NodeData { nodeEnv = Environment env
                           , typeRef = t }) = do
     a <- lookupDef
@@ -650,9 +652,9 @@ specialize name (NodeData { nodeEnv = Environment env
         -- #TODO refactor how I do error checking in unify
         -- #TODO remove all these "errorString" things when that happens too
         sigStr <- lift $ showType (typeRef $ topStmtNodeData f')
-        tStr <- lift $ showType t'
+        tStr <- lift $ showType t
         let errorString = sigStr ++ "\n" ++ tStr ++ "\n"
-        _ <- lift $ unify (error $ "error in specialize:\n" ++ errorString) t' (typeRef $ topStmtNodeData f')
+        _ <- lift $ unify (error $ "error in specialize of " ++ name ++ ":\n" ++ errorString) t' (typeRef $ topStmtNodeData f')
         let names = getNames f'
         modify $ ((nodeId $ topStmtNodeData f', f') :)
         mapM_ (uncurry specialize) names

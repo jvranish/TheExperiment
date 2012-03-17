@@ -17,8 +17,6 @@ foreign mul
 :: UInt32, UInt32 -> Bool;
 foreign eq
 
-// this does not work yet
-:: UInt32 -> UInt32;
 def fact(a):
   if a == 0:
     return 1
@@ -28,17 +26,9 @@ def fact(a):
   end
 end
 
-:: UInt32 -> UInt32;
-def main(z):
-  :: UInt32;
+def main():
   var x
   x = 9
   return fact(x)
 end
 
-
-// main, foo, bar :: UInt32
-// main:
-//   var x
-//   x = 9
-//   return fact(x)

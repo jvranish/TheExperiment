@@ -89,6 +89,11 @@ data Expr a
         -}
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
+pPrintExpr :: Expr a -> Doc
+pPrintExpr (Call _ _ f args) = pPrintExpr f <> parens (hsep $ punctuate comma $ fmap pPrintExpr args)
+pPrintExpr (Identifier _ _ name _) = text name
+pPrintExpr (Literal _ _ l) = text $ show l
+
 data Statement a
         = Assign   { stmtPos      :: SourcePos
                    , stmtNodeData :: a
@@ -120,6 +125,18 @@ data Statement a
                    }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
+pPrintStmt (Assign _ _ name expr) = text name <+> equals <+> pPrintExpr expr
+pPrintStmt (If _ _ cond t Nothing) = text "if" <+> pPrintExpr cond $+$ pPrintStmt t 
+pPrintStmt (If _ _ cond t (Just e)) = text "if" <+> pPrintExpr cond $+$ pPrintStmt t $+$ pPrintStmt e
+pPrintStmt (While _ _ cond b) = text "while" <+> pPrintExpr cond $+$ pPrintStmt b
+pPrintStmt (ExprStmt _ _ e) = pPrintExpr e
+pPrintStmt (Return _ _ e) = text "return" <+> pPrintExpr e
+pPrintStmt (Block _ _ (d, b)) = text "begin" $+$ nest 2 (pPrintBlock d b) $+$ text "end"
+
+pPrintBlock defs body = vcat (fmap pPrintDef defs) $+$ vcat (fmap pPrintStmt body)
+
+
+
 data VarDef a 
         = VarDef { varDefPos      :: SourcePos -- this pos
                   -- is the position of the var name
@@ -127,6 +144,8 @@ data VarDef a
                  , varName        :: String
                  }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+pPrintVarDef (VarDef _ _ name) = text name
 
 returnId :: String
 returnId = "#return"
@@ -159,11 +178,15 @@ data Definition a
                     , typeDefType     :: T.TypeDef ParsedType
                     }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
-                    
+
+pPrintDef (TopVarDef _ _ vdef _) = text "var" <+> pPrintVarDef vdef
+pPrintDef (FuncDef _ _ name params _ stmt _) = text "def" <+> text name <> parens (hsep $ punctuate comma $ fmap pPrintVarDef params) $+$ pPrintStmt stmt
+pPrintDef (Foreign _ _ name _) = text "foreign" <+> text name
 
 data Module a = Module SourcePos [Definition a]
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
+pPrintModule (Module _ defs) = vcat $ fmap pPrintDef defs
 
 pPrintPos :: SourcePos -> Doc 
 pPrintPos pos = text (sourceName pos) <> colon <> int (sourceLine pos) <> colon <> int (sourceColumn pos)
