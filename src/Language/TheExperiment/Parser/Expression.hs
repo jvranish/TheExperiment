@@ -2,16 +2,13 @@ module Language.TheExperiment.Parser.Expression where
 
 import Text.Parsec
 
+import Language.TheExperiment.AST.Expression
 import Language.TheExperiment.Parser.Lexer
 --import Language.TheExperiment.Parser.Literal
 
-data Expr = Literal {
-    exprPos :: SourcePos
-    -- literal :: Literal
-  }
-  -- Identifier
-  -- Call
-  deriving (Show, Ord, Eq)
 
-anExpr :: EParser Expr
+
+type ParsedExpr = Expr ()
+
+anExpr :: EParser ParsedExpr
 anExpr = undefined -- liftMp Literal aLiteral

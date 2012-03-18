@@ -20,13 +20,13 @@ varIdent  = T.identifier $ T.makeTokenParser
           $ eLanguageDef { T.identStart = oneOf ['a'..'z'] }
   
 liftMp :: (SourcePos -> () -> a -> b) -> EParser a -> EParser b
-liftMp  f = liftM2 f getPosition
+liftMp  f = liftM3 f getPosition (return ())
 
 liftM2p :: (SourcePos -> () -> a -> b -> c) -> EParser a -> EParser b -> EParser c
-liftM2p f = liftM3 f getPosition
+liftM2p f = liftM4 f getPosition (return ())
 
 liftM3p :: (SourcePos -> () -> a -> b -> c -> d) -> EParser a -> EParser b -> EParser c -> EParser d
-liftM3p f = liftM4 f getPosition (return ())
+liftM3p f = liftM5 f getPosition (return ())
 
 eLanguageDef :: Monad m => T.GenLanguageDef String u m
 eLanguageDef = T.LanguageDef
