@@ -78,3 +78,18 @@ reservedOp = T.reservedOp lexer
 
 stringLiteral :: EParser String
 stringLiteral = T.stringLiteral lexer
+
+charLiteral :: EParser Char
+charLiteral = T.charLiteral lexer
+
+float :: EParser Double
+float = T.float lexer
+
+decimal :: EParser Integer
+decimal = T.decimal lexer
+
+octal :: EParser Integer
+octal = T.octal lexer
+
+hexadecimal :: EParser Integer
+hexadecimal = T.hexadecimal lexer
