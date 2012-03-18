@@ -26,7 +26,7 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                   }
                   | VariableDef { defnPos         :: SourcePos
                                 , defnNodeData    :: a
-                                , variableDefName :: VarDef a
+                                , variableDefName :: Variable a
                                 -- , initializationExpr :: Maybe (Expr a)
                                 }
                   | ForeignDef { defnPos       :: SourcePos
@@ -38,8 +38,8 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                   | FunctionDef { defnPos           :: SourcePos
                                 , defnNodeData      :: a
                                 , functionName      :: String
-                                , functionParams    :: [VarDef a]
-                                , funcRet           :: VarDef a
+                                , functionParams    :: [Variable a]
+                                , funcRet           :: a
                                 , functionStatement :: Statement a
                                 }
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
@@ -62,7 +62,7 @@ data Statement a
                    , whileCond    :: Expr a
                    , whileBody    :: Statement a
                    }
-        | ExprStmt { stmtPos      :: SourcePos
+        | CallStmt { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , stmtExpr     :: Expr a
                    }
@@ -72,17 +72,19 @@ data Statement a
                    }
         | Block    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
-                   , blockBody    :: ([Definition a], [Statement a])
+                   , blockBody    :: [DefOrStatement a]
                    }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-
-data VarDef a  = VarDef { varDefPos      :: SourcePos -- this pos
-                         -- is the position of the var name
-                        , varDefNodeData :: a
-                        , varName        :: String
-                        }
+data DefOrStatement a = Def (Definition a)
+                      | Stmt (Statement a)
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-returnId :: String
-returnId = "#return"
+
+
+data Variable a  = Variable { varDefPos      :: SourcePos -- this pos
+                             -- is the position of the var name
+                            , varDefNodeData :: a
+                            , varName        :: String
+                            }
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)

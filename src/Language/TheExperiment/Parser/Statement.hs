@@ -10,8 +10,10 @@ import Language.TheExperiment.AST.Statement
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Expression
 
-type ParsedDefinition = Definition ()
-type ParsedStatement = Statement ()
+type ParsedDefinition     = Definition ()
+type ParsedStatement      = Statement ()
+type ParsedVariable       = Variable ()
+type ParsedDefOrStatement = DefOrStatement ()
 
 aParsedType = undefined
 
@@ -23,47 +25,25 @@ aDefinition = aTypeDef
           <|> aFunctionDef
 
 aTypeDef :: EParser ParsedDefinition
-aTypeDef = do
-  p <- getPosition
-  _ <- reserved "type"
-  v <- typeIdent
-  _ <- reservedOp "="
-  t <- aParsedType
-  return $ TypeDef p v t
+aTypeDef = liftM2p TypeDef (reserved "type" >> typeIdent) (reservedOp "=" >> aParsedType)
 
 aTypeSignature :: EParser ParsedDefinition
-aTypeSignature = do
-  p  <- getPosition
-  vs <- commaSep1 varIdent
-  _  <- reservedOp "::"
-  t  <- aParsedType
-  return $ TypeSignature p vs t
+aTypeSignature = liftM2p TypeSignature (commaSep1 varIdent) (reservedOp "::" >> aParsedType)
 
 aVariableDef :: EParser ParsedDefinition
-aVariableDef = do
-  p <- getPosition
-  _ <- reserved "var"
-  v <- varIdent
-  return $ VariableDef p v
+aVariableDef = liftMp VariableDef (reserved "var" >> aVariable)
 
 aForeignDef :: EParser ParsedDefinition
-aForeignDef = do
-  p <- getPosition
-  _ <- reserved "foreign"
-  l <- varIdent
-  f <- stringLiteral
-  t <- aParsedType
-  return $ ForeignDef p l f t
-
+aForeignDef = liftM3p ForeignDef (reserved "foreign" >> varIdent) stringLiteral aParsedType
+ 
 aFunctionDef :: EParser ParsedDefinition
-aFunctionDef = do
-  p  <- getPosition
-  _  <- reserved "def"
-  n  <- varIdent
-  as <- option [] $ parens $ commaSep1 varIdent
-  _  <- reservedOp ":"
-  s  <- aStatement
-  return $ FunctionDef p n as s
+aFunctionDef = liftM4p FunctionDef (reserved "def" >> varIdent)
+                                   (option [] $ parens $ commaSep1 aVariable)
+                                   (return ())
+                                   (reservedOp ":" >> aStatement)
+
+aVariable :: EParser ParsedVariable
+aVariable = liftMp Variable varIdent
 
         -- = Assign   { stmtPos      :: SourcePos
         --            , stmtNodeData :: a
@@ -93,15 +73,44 @@ aFunctionDef = do
         --            , stmtNodeData :: a
         --            , blockBody    :: ([ParsedDefinition a], [Statement a])
         --            }
-  
+
 
 
 aStatement :: EParser ParsedStatement
-aStatement = do
-  aReturn <|> aBlock
+aStatement = aAssign
+         <|> aIf
+         <|> aWhile
+         <|> aCallStmt
+         <|> aReturn 
+         <|> aBlock
 
-aBlock :: EParser ParsedStatement
-aBlock = liftMp Block (block $ liftM2 (,) (many aDefinition) (many aStatement))
+
+aAssign :: EParser ParsedStatement
+aAssign = undefined
+
+aIf :: EParser ParsedStatement
+aIf = undefined
+
+aWhile :: EParser ParsedStatement
+aWhile = undefined
+
+aCallStmt :: EParser ParsedStatement
+aCallStmt = undefined
 
 aReturn :: EParser ParsedStatement
 aReturn = liftMp Return (reserved "return" >> anExpr)
+
+
+aBlock :: EParser ParsedStatement
+aBlock = liftMp Block (block $ aDefOrStatement)
+
+aDefOrStatement :: EParser ParsedDefOrStatement
+aDefOrStatement = liftM Def aDefinition
+              <|> liftM Stmt aStatement
+
+
+
+
+
+
+
