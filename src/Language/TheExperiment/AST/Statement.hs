@@ -14,24 +14,29 @@ import Language.TheExperiment.AST.Expression
 import Language.TheExperiment.AST.Type
 
 
-data Definition a = TypeDef { defnPos     :: SourcePos
-                            , typeDefName :: String
-                            , typeDefType :: ParsedType
+data Definition a = TypeDef { defnPos      :: SourcePos
+                            , defnNodeData :: a
+                            , typeDefName  :: String
+                            , typeDefType  :: ParsedType
                             }
                   | TypeSignature { defnPos      :: SourcePos
+                                  , defnNodeData :: a
                                   , typeSigNames :: [String]
                                   , typeSigType  :: ParsedType
                                   }
                   | VariableDef { defnPos         :: SourcePos
+                                , defnNodeData    :: a
                                 , variableDefName :: VarDef a
                                 -- , initializationExpr :: Maybe (Expr a)
                                 }
                   | ForeignDef { defnPos       :: SourcePos
+                               , defnNodeData  :: a
                                , nativeDefName :: String
                                , foreignName   :: String
                                , nativeDefType :: ParsedType
                                } -- foreign cFunction "c_function" (Int -> Int)
                   | FunctionDef { defnPos           :: SourcePos
+                                , defnNodeData      :: a
                                 , functionName      :: String
                                 , functionParams    :: [VarDef a]
                                 , funcRet           :: VarDef a
