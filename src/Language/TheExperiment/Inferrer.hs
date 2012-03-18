@@ -70,7 +70,8 @@ add ability to catch error from unify monad to improve error messages
 data InferrerStatus = Inferred | Inferring
 
 data Environment = Environment 
-        { valueEnv :: Map.Map String (Definition NodeData)
+        { valueEnv          :: Map.Map String (Definition NodeData)
+        , enclosingFunction :: Maybe (Definition NodeData)
         -- , typeEnv  :: Map.Map String (TypeDef v)
         }
 
