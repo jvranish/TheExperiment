@@ -1,4 +1,4 @@
-module Language.TheExperiment.Parser.Definition where
+module Language.TheExperiment.Parser.Statement where
 
 import Control.Monad
 
