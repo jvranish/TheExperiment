@@ -5,7 +5,7 @@ import Text.PrettyPrint
 import Language.C.Pretty
 
 import Language.TheExperiment.Inferrer
-import Language.TheExperiment.TempParser
+import Language.TheExperiment.Parser
 import Language.TheExperiment.CodeGen
 import Control.Monad.ErrorM
 
