@@ -11,13 +11,13 @@ type EParser a = ParsecT String () (S.State SourcePos) a
 opChars :: Monad m => ParsecT String u m Char
 opChars = oneOf ":!#$%&*+./<=>?@\\^|-~"
 
-typeIdent :: EParser String
-typeIdent = T.identifier $ T.makeTokenParser 
-          $ eLanguageDef { T.identStart = oneOf ['A'..'Z'] }
+upperIdent :: EParser String
+upperIdent = T.identifier $ T.makeTokenParser 
+           $ eLanguageDef { T.identStart = oneOf ['A'..'Z'] }
 
-varIdent :: EParser String
-varIdent  = T.identifier $ T.makeTokenParser
-          $ eLanguageDef { T.identStart = oneOf ['a'..'z'] }
+lowerIdent :: EParser String
+lowerIdent  = T.identifier $ T.makeTokenParser
+            $ eLanguageDef { T.identStart = oneOf ['a'..'z'] }
   
 liftMp :: (SourcePos -> () -> a -> b) -> EParser a -> EParser b
 liftMp  f = liftM3 f getPosition (return ())

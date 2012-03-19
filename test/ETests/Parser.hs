@@ -5,7 +5,7 @@ import Text.Parsec.Pos
 import Text.Parsec.String
 import Language.TheExperiment.AST
 import Language.TheExperiment.Parser
-import Language.TheExperiment.Parser.Types
+-- import Language.TheExperiment.Parser.Types
 
 
 testSource :: String

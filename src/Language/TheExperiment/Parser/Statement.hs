@@ -6,7 +6,8 @@ import Text.Parsec
 import Text.Parsec.Indent
 
 import Language.TheExperiment.AST.Statement
--- import Language.TheExperiment.Parser.Type
+import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.Type
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Expression
 
@@ -19,31 +20,31 @@ aParsedType = undefined
 
 aDefinition :: EParser ParsedDefinition
 aDefinition = aTypeDef
-          <|> aTypeSignature
+          <|> aDefSignature
           <|> aVariableDef
           <|> aForeignDef
           <|> aFunctionDef
 
 aTypeDef :: EParser ParsedDefinition
-aTypeDef = liftM2p TypeDef (reserved "type" >> typeIdent) (reservedOp "=" >> aParsedType)
+aTypeDef = liftM2p TypeDef (reserved "type" >> upperIdent) (reservedOp "=" >> aParsedType)
 
-aTypeSignature :: EParser ParsedDefinition
-aTypeSignature = liftM2p TypeSignature (commaSep1 varIdent) (reservedOp "::" >> aParsedType)
+aDefSignature :: EParser ParsedDefinition
+aDefSignature = liftM2p DefSignature (commaSep1 lowerIdent) (reservedOp "::" >> aParsedType)
 
 aVariableDef :: EParser ParsedDefinition
 aVariableDef = liftMp VariableDef (reserved "var" >> aVariable)
 
 aForeignDef :: EParser ParsedDefinition
-aForeignDef = liftM3p ForeignDef (reserved "foreign" >> varIdent) stringLiteral aParsedType
+aForeignDef = liftM3p ForeignDef (reserved "foreign" >> lowerIdent) stringLiteral aParsedType
  
 aFunctionDef :: EParser ParsedDefinition
-aFunctionDef = liftM4p FunctionDef (reserved "def" >> varIdent)
+aFunctionDef = liftM4p FunctionDef (reserved "def" >> lowerIdent)
                                    (option [] $ parens $ commaSep1 aVariable)
                                    (return ())
                                    (reservedOp ":" >> aStatement)
 
 aVariable :: EParser ParsedVariable
-aVariable = liftMp Variable varIdent
+aVariable = liftMp Variable lowerIdent
 
         -- = Assign   { stmtPos      :: SourcePos
         --            , stmtNodeData :: a
@@ -86,7 +87,7 @@ aStatement = aAssign
 
 
 aAssign :: EParser ParsedStatement
-aAssign = undefined
+aAssign = undefined -- liftM2p Assign identifier (reservedOp "=") 
 
 aIf :: EParser ParsedStatement
 aIf = undefined

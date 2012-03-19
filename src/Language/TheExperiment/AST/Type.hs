@@ -11,7 +11,7 @@ import Text.Parsec.Pos
 import Data.Foldable
 import Data.Traversable
 
-data TypeSig = TypeSig [TypeConstraint] ParsedType
+data TypeSignature = TypeSignature [TypeConstraint] ParsedType
   deriving (Show, Ord, Eq)
 
 data TypeConstraint = TypeConstraint String [ParsedType]
@@ -34,6 +34,10 @@ data Type a = TypeName     { typeName :: String
 data ParsedType = ParsedType { typePos    :: SourcePos
                              , parsedType :: Type ParsedType
                              }
- deriving (Show, Eq, Ord)
+ deriving (Show, Ord)
+
+-- This will ignore differences in SourcePos (this makes testing easier)
+instance Eq ParsedType where
+  ParsedType _ a == ParsedType _ b = a == b
 
 

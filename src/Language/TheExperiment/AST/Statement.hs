@@ -19,11 +19,11 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                             , typeDefName  :: String
                             , typeDefType  :: ParsedType
                             }
-                  | TypeSignature { defnPos      :: SourcePos
-                                  , defnNodeData :: a
-                                  , typeSigNames :: [String]
-                                  , typeSigType  :: ParsedType
-                                  }
+                  | DefSignature { defnPos      :: SourcePos
+                                 , defnNodeData :: a
+                                 , typeSigNames :: [String]
+                                 , typeSigType  :: TypeSignature
+                                 }
                   | VariableDef { defnPos         :: SourcePos
                                 , defnNodeData    :: a
                                 , variableDefName :: Variable a
