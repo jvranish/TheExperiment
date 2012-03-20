@@ -59,8 +59,8 @@ aTypeSignatureSpecs = describe "aTypeSignature" $
         )
     ]
   where
-    parsesToSig input expected = runTestCase "aTypeSignature" aTypeSignature input (Just $ TypeSignature [] expected)
-    parsesTo input expected = runTestCase "aTypeSignature" aTypeSignature input (Just $ expected)
+    parsesToSig input expected = parsesTo input (TypeSignature [] expected)
+    parsesTo = runTestCase "aTypeSignature" aTypeSignature
 
 
 
@@ -70,17 +70,23 @@ testParseType = hspec aTypeSpecs
 aTypeSpecs :: Specs
 aTypeSpecs = describe "aType" $ aTypeTestCases parsesTo
   where
-    parsesTo input expected = runTestCase "aType" aType input (Just $ expected)
+    parsesTo = runTestCase "aType" aType
 
 aTypeTestCases :: (String -> ParsedType -> IO ()) -> [Specs]  
 aTypeTestCases parsesTo = 
   [ it "Parses a TypeName" $
      "UInt32" `parsesTo` (pTypeName "UInt32")
+  , it "Parses a TypeName in parens" $
+     "(UInt32)" `parsesTo` (pTypeName "UInt32")
   , it "Parses a TypeVariable" $
       "a" `parsesTo` (pTypeVariable "a")
   , it "Parses a FunctionType" $
       "A, B -> C" `parsesTo` 
         (pFunctionType [(pTypeName "A"), (pTypeName "B")] (pTypeName "C"))
+  , it "Parses a FunctionType with type variables" $
+      "a, b -> c" `parsesTo` 
+        (pFunctionType 
+          [(pTypeVariable "a"), (pTypeVariable "b")] (pTypeVariable "c"))
   , it "Parses a FunctionType" $
       "A -> C" `parsesTo` 
         (pFunctionType [pTypeName "A"] (pTypeName "C"))
@@ -88,51 +94,43 @@ aTypeTestCases parsesTo =
       "-> C" `parsesTo` 
         (pFunctionType [] (pTypeName "C"))
   , it "Parses a TypeCall" $
+      "F a" `parsesTo` 
+        (pTypeCall (pTypeName "F") [pTypeVariable "a"])
+  , it "Parses a TypeCall with a function parameter" $
       "F (-> C)" `parsesTo` 
         (pTypeCall (pTypeName "F") [pFunctionType [] (pTypeName "C")])
+  , it "Parses a FunctionType with a FunctionType argument " $
+      "Foo a, (a -> b) -> c" `parsesTo`
+        (pFunctionType 
+            [ pTypeCall (pTypeName "Foo") [pTypeVariable "a"]
+            , pFunctionType [pTypeVariable "a"] (pTypeVariable "b")
+            ]
+            (pTypeVariable "c"))
   ]
-    
-
 
 pTypeName :: String -> ParsedType
-pTypeName name = ParsedType blankPos $ TypeName name
+pTypeName name = TypeName blankPos name
 
 pTypeVariable :: String -> ParsedType
-pTypeVariable name = ParsedType blankPos $ TypeVariable (Just name) []
+pTypeVariable name = TypeVariable blankPos name
 
 pFunctionType :: [ParsedType] -> ParsedType -> ParsedType
-pFunctionType params ret = ParsedType blankPos $ FunctionType params ret
+pFunctionType params ret = FunctionType blankPos params ret
 
 pTypeCall :: ParsedType -> [ParsedType] -> ParsedType
-pTypeCall typeFunc args = ParsedType blankPos $ TypeCall typeFunc args
-
+pTypeCall typeFunc args = TypeCall blankPos typeFunc args
 
 
 blankPos :: SourcePos
 blankPos = initialPos "test"
 
-
         
 runTestCase :: (Show a, Eq a)
-            => String -> EParser a -> String -> Maybe a -> IO ()
+            => String -> EParser a -> String -> a -> IO ()
 runTestCase name p text expected= do
   case runEParser "tests" text (p <* eof) of
-    Left e -> case expected of
-      Just x -> assertFailure $ unlines $
-          [ name 
-          , "expected: " ++ show x
-          , "but parse failed with:\n   " ++ show e
-          ]
-      Nothing -> return ()
-    Right x -> case expected of
-      Just x' -> case x == x' of
-        True -> return ()
-        False -> assertEqual name x x'
-      Nothing -> assertFailure $ unlines $
-        [ name
-        , "expected parse fail"
-        , "but parse succeeded with:\n   " ++ show x
-        ]
+    Left e -> error $ "Parse failed: " ++ show e
+    Right x -> assertEqual name expected x
 
 
 

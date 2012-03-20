@@ -7,12 +7,8 @@ import Text.PrettyPrint.HughesPJ
 
 import Language.TheExperiment.AST.Type
 
-type ParenContext = Integer
-
-none, functionType, typeCall :: ParenContext
-none = 0
-functionType = 1
-typeCall = 2
+data ParenContext = NoneC | FunctionTypeC | TypeCallC
+  deriving (Show, Ord, Eq)
 
 
 prettyTypeSignature :: TypeSignature -> Doc
@@ -25,18 +21,17 @@ prettyTypeConstraint (TypeConstraint name cs) =
   text name <+> colon <+> hsep (punctuate (text " |") (fmap prettyType cs))
 
 prettyType :: ParsedType -> Doc
-prettyType = prettyType' 0
+prettyType = prettyType' NoneC
 
 prettyType' :: ParenContext -> ParsedType -> Doc
-prettyType' context (ParsedType _ t) = case t of
-  TypeName name              -> text name
-  TypeVariable (Just name) _ -> text name
-  TypeVariable Nothing     _ -> text "*error*"
-  TypeCall f args            -> cParens typeCall $ 
-      prettyType' typeCall f <+> hsep (fmap (prettyType' typeCall) args)
-  FunctionType params ret    -> cParens functionType $ 
-      hsep (punctuate comma (fmap (prettyType' functionType) params)) <+>
-      text "->" <+> prettyType' functionType ret
+prettyType' context t = case t of
+  TypeName     _ name -> text name
+  TypeVariable _ name -> text name
+  TypeCall   _ f args -> cParens TypeCallC $ 
+      prettyType' TypeCallC f <+> hsep (fmap (prettyType' TypeCallC) args)
+  FunctionType _ params ret -> cParens FunctionTypeC $ 
+      hsep (punctuate comma (fmap (prettyType' FunctionTypeC) params)) <+>
+      text "->" <+> prettyType' FunctionTypeC ret
   where
     cParens c doc | context >= c = parens doc
     cParens _ doc = doc

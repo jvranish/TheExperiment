@@ -29,12 +29,12 @@ aTypeTerm = aTypeName <|> aTypeVariable <|> parens aType <?> "Type Term"
 aType :: EParser ParsedType
 aType = do
   pos        <- getPosition
-  paramTypes <- sepBy aTypeCall comma
+  paramTypes <- sepBy1 aTypeCall comma
   funcReturn <- optionMaybe $ do
       _ <- symbol "->"
       aTypeTerm
   case (paramTypes, funcReturn) of
-    (ts , Just ret) -> return $ ParsedType pos $ FunctionType ts ret
+    (ts , Just ret) -> return $ FunctionType pos ts ret
     ([t], Nothing)  -> return $ t
     (_  , Nothing)  -> parserZero <?> "->"
 
@@ -46,14 +46,14 @@ aTypeCall = do
     typeParams' <- many aTypeTerm
     return $ case typeParams' of
                [] -> typeFunc
-               _  -> ParsedType pos $ TypeCall typeFunc typeParams'
+               _  -> TypeCall pos typeFunc typeParams'
 
 aTypeName :: EParser ParsedType
 aTypeName = liftMtp TypeName upperIdent
 
 aTypeVariable :: EParser ParsedType
-aTypeVariable = liftMtp (flip TypeVariable [] . Just) lowerIdent
+aTypeVariable = liftMtp TypeVariable lowerIdent
 
 
-liftMtp :: (a -> Type ParsedType) -> EParser a -> EParser ParsedType
-liftMtp f a = liftM2 ParsedType getPosition (liftM f a)
+liftMtp :: (SourcePos -> a -> ParsedType) -> EParser a -> EParser ParsedType
+liftMtp f = liftM2 f getPosition
