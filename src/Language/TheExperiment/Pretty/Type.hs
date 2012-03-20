@@ -18,11 +18,11 @@ typeCall = 2
 prettyTypeSignature :: TypeSignature -> Doc
 prettyTypeSignature (TypeSignature [] t) = prettyType t
 prettyTypeSignature (TypeSignature cs t) = 
-  hsep (fmap prettyTypeConstraint cs) <+> text "=>" <+> prettyType t
+  hsep (punctuate comma (fmap prettyTypeConstraint cs)) <+> text "=>" <+> prettyType t
 
 prettyTypeConstraint :: TypeConstraint -> Doc
 prettyTypeConstraint (TypeConstraint name cs) = 
-  text name <+> colon <+> hsep (punctuate (text "|") (fmap prettyType cs))
+  text name <+> colon <+> hsep (punctuate (text " |") (fmap prettyType cs))
 
 prettyType :: ParsedType -> Doc
 prettyType = prettyType' 0
@@ -34,7 +34,7 @@ prettyType' context (ParsedType _ t) = case t of
   TypeVariable Nothing     _ -> text "*error*"
   TypeCall f args            -> cParens typeCall $ 
       prettyType' typeCall f <+> hsep (fmap (prettyType' typeCall) args)
-  FunctionType params ret    -> cParens typeCall $ 
+  FunctionType params ret    -> cParens functionType $ 
       hsep (punctuate comma (fmap (prettyType' functionType) params)) <+>
       text "->" <+> prettyType' functionType ret
   where
