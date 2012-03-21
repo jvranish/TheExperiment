@@ -32,7 +32,6 @@ import qualified Data.Map as Map
 import Language.TheExperiment.Misc
 import Language.TheExperiment.Type
 import Language.TheExperiment.AST hiding (TypeName)
-import Language.TheExperiment.PrettyPrint
 
 -- #TODO (this is a workaround for the naming clash between Type.hs and AST.hs)
 --  fix this
