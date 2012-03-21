@@ -122,10 +122,6 @@ pFunctionType params ret = FunctionType blankPos params ret
 pTypeCall :: ParsedType -> [ParsedType] -> ParsedType
 pTypeCall typeFunc args = TypeCall blankPos typeFunc args
 
-
-blankPos :: SourcePos
-blankPos = initialPos "test"
-
         
 runTestCase :: (Show a, TestComp a)
             => String -> EParser a -> String -> a -> IO ()

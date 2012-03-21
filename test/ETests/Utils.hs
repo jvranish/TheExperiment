@@ -7,9 +7,6 @@ import Language.TheExperiment.AST.Type
 
 import Test.HUnit
 
-initPos :: SourcePos
-initPos = initialPos "tests"
-
 
 class (Eq a) => TestComp a where
   testComp :: a -> a -> Bool
@@ -40,3 +37,5 @@ eTestAssertEqual preface expected actual =
  where msg = (if null preface then "" else preface ++ "\n") ++
              "expected: " ++ show expected ++ "\n but got: " ++ show actual
 
+blankPos :: SourcePos
+blankPos = initialPos "tests"
