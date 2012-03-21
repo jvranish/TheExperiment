@@ -43,17 +43,16 @@ Library
         Language.TheExperiment.AST.Statement
         Language.TheExperiment.AST.Type
         Language.TheExperiment.Builtin
-        -- Language.TheExperiment.CodeGen
-        -- Language.TheExperiment.CodeGenType
-        -- Language.TheExperiment.Compile
-        -- Language.TheExperiment.Inferrer
+        Language.TheExperiment.CodeGen
+        Language.TheExperiment.CodeGenType
+        --Language.TheExperiment.Compile
+        --Language.TheExperiment.Inferrer
         Language.TheExperiment.Misc
         Language.TheExperiment.Parser
         Language.TheExperiment.Parser.Expression
         Language.TheExperiment.Parser.Lexer
         Language.TheExperiment.Parser.Statement
         Language.TheExperiment.Parser.Literal
-        -- Language.TheExperiment.PrettyPrint
 
     ghc-options:        -Wall
     hs-source-dirs:     src

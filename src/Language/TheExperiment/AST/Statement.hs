@@ -13,6 +13,8 @@ import Data.Traversable
 import Language.TheExperiment.AST.Expression
 import Language.TheExperiment.AST.Type
 
+data Module a = Module SourcePos [Definition a]
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data Definition a = TypeDef { defnPos      :: SourcePos
                             , defnNodeData :: a
@@ -24,9 +26,9 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                  , typeSigNames :: [String]
                                  , typeSigType  :: TypeSignature
                                  }
-                  | VariableDef { defnPos         :: SourcePos
-                                , defnNodeData    :: a
-                                , variableDefName :: Variable a
+                  | VariableDef { defnPos      :: SourcePos
+                                , defnNodeData :: a
+                                , variable     :: Variable a
                                 -- , initializationExpr :: Maybe (Expr a)
                                 }
                   | ForeignDef { defnPos       :: SourcePos
@@ -39,7 +41,7 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                 , defnNodeData      :: a
                                 , functionName      :: String
                                 , functionParams    :: [Variable a]
-                                , funcRet           :: a
+                                , functionRet       :: a
                                 , functionStatement :: Statement a
                                 }
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
@@ -80,6 +82,10 @@ data DefOrStatement a = Def (Definition a)
                       | Stmt (Statement a)
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
+defOrStmtToEither :: DefOrStatement a 
+                  -> Either (Definition a) (Statement a)
+defOrStmtToEither (Def a) = Left a
+defOrStmtToEither (Stmt a) = Right a
 
 
 data Variable a  = Variable { varDefPos      :: SourcePos -- this pos

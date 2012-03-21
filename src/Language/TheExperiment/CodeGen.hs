@@ -19,6 +19,8 @@ Notable features still missing:
 
 import Control.Monad
 
+import Data.Either
+
 import Text.Parsec.Pos
 
 import Language.C.Syntax
@@ -145,14 +147,14 @@ genStatement (While { stmtPos = pos
                     , whileCond = cond
                     , whileBody = body } ) = 
     CWhile (genExpr cond) (genStatement body) False (getNodeInfo pos)
-genStatement (ExprStmt { stmtPos = pos
+genStatement (CallStmt { stmtPos = pos
                        , stmtExpr = a }) =
     CExpr (Just $ genExpr a) (getNodeInfo pos)
 genStatement (Return { stmtPos = pos
                      , returnExpr = a }) =
     CReturn (Just $ genExpr a) (getNodeInfo pos)
 genStatement (Block { stmtPos = pos
-                    , blockBody = (varDefs, stmts) }) =
+                    , blockBody = bodyStmts }) =
         CCompound 
             [] 
             (varDefs' ++ stmts')
@@ -161,15 +163,16 @@ genStatement (Block { stmtPos = pos
     -- #TODO we also only currently support variable declarations without 
     --    initializers
     where
+        (varDefs, stmts) = partitionEithers $ fmap defOrStmtToEither bodyStmts
         stmts'   = fmap (CBlockStmt . genStatement) stmts
         varDefs' = [CBlockDecl $ genVarDecl vPos name t | 
-                        (TopVarDef { topStmtPos = vPos
-                                   , topStmtNodeData = t
-                                   , varDef = VarDef { varName = name } } )
+                        (VariableDef { defnPos = vPos
+                                   , defnNodeData = t
+                                   , variable = Variable { varName = name } } )
                         <- varDefs]
 
-genVarDef :: VarDef GenType -> CDecl
-genVarDef (VarDef { varDefPos = pos
+genVarDef :: Variable GenType -> CDecl
+genVarDef (Variable { varDefPos = pos
                   , varDefNodeData = t
                   , varName = name } ) = genVarDecl pos name t
 
@@ -179,23 +182,23 @@ genModule (Module pos topLevels) =
     CTranslUnit (fmap genTopLevel $ filter foreignFilter topLevels) 
                 (getNodeInfo pos)
 
-foreignFilter (Foreign {}) = False
+foreignFilter (ForeignDef {}) = False
 foreignFilter _ = True
 
 genTopLevel :: Definition GenType -> CExtDecl
 -- #TODO we currently do not handle var defs with initializers
 -- #TODO I'm filtering out the foreign defs but I don't like depending on that
-genTopLevel (TopVarDef { varDef = def } ) = CDeclExt $ genVarDef def
-genTopLevel (TypeDef { topStmtPos = pos
-                     , topStmtNodeData = t
+genTopLevel (VariableDef { variable = def } ) = CDeclExt $ genVarDef def
+genTopLevel (TypeDef { defnPos = pos
+                     , defnNodeData = t
                      , typeDefName = name } ) 
             = CDeclExt $ genTypeDef pos name t
-genTopLevel (FuncDef { topStmtPos = pos
-                     , topStmtNodeData = _
-                     , funcName = name
-                     , funcParams = params
-                     , funcRet = VarDef { varDefNodeData = GenType retType _ }
-                     , funcStmt = stmt } ) 
+genTopLevel (FunctionDef { defnPos = pos
+                     , defnNodeData = _
+                     , functionName = name
+                     , functionParams = params
+                     , functionRet = GenType retType _
+                     , functionStatement = stmt } ) 
             = CFDefExt $ genFuncDef pos name params retType stmt
 
 
@@ -203,7 +206,7 @@ genTypeDef :: SourcePos -> String -> GenType -> CDecl
 genTypeDef pos name t = 
     genDecl pos name t [CStorageSpec (CTypedef (getNodeInfo pos))]
 
-genFuncDef :: SourcePos -> String -> [VarDef GenType] -> GenBasicType
+genFuncDef :: SourcePos -> String -> [Variable GenType] -> GenBasicType
            -> Statement GenType -> CFunDef
 genFuncDef pos name params retType stmt =
     CFunDef [CTypeSpec retType'] declr [] stmt' (getNodeInfo pos)
