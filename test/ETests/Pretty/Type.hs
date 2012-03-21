@@ -13,6 +13,8 @@ import Language.TheExperiment.Parser
 import Language.TheExperiment.Parser.Type
 import Language.TheExperiment.Pretty.Type
 
+import ETests.Utils
+
 import Test.Hspec
 import Test.Hspec.HUnit()
 import Test.HUnit
@@ -35,10 +37,10 @@ prettyTypeSignatureSpecs = describe "prettyTypeSignature" $
   where
     prettyFrom expected input = 
         case runEParser "tests" input (aTypeSignature <* eof) of
-          Right result -> assertEqual "prettyTypeSignature" 
+          Right result -> eTestAssertEqual "prettyTypeSignature" 
                             expected
                             (render $ prettyTypeSignature result)
-          Left _ -> error "fix your stupid test"
+          Left e -> error $ "fix your stupid test: " ++ show e
 
 testPrettyType :: IO Specs
 testPrettyType = hspec prettyTypeSpecs
@@ -72,8 +74,8 @@ prettyTypeSpecs = describe "prettyType" $ prettyTypeTestCases prettyFrom
   where
     prettyFrom expected input = 
         case runEParser "tests" input (aType <* eof) of
-          Right result -> assertEqual "prettyType" 
+          Right result -> eTestAssertEqual "prettyType" 
                             expected
                             (render $ prettyType result)
-          Left _ -> error "fix your stupid test"
+          Left e -> error $ "fix your stupid test: " ++ show e
 

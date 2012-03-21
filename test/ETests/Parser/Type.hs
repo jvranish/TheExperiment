@@ -12,6 +12,8 @@ import Language.TheExperiment.AST.Type
 import Language.TheExperiment.Parser
 import Language.TheExperiment.Parser.Type
 
+import ETests.Utils
+
 import Test.Hspec
 import Test.Hspec.HUnit()
 import Test.HUnit
@@ -125,12 +127,12 @@ blankPos :: SourcePos
 blankPos = initialPos "test"
 
         
-runTestCase :: (Show a, Eq a)
+runTestCase :: (Show a, TestComp a)
             => String -> EParser a -> String -> a -> IO ()
 runTestCase name p text expected= do
   case runEParser "tests" text (p <* eof) of
     Left e -> error $ "Parse failed: " ++ show e
-    Right x -> assertEqual name expected x
+    Right x -> eTestAssertEqual name expected x
 
 
 

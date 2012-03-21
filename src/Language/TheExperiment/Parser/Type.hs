@@ -29,7 +29,7 @@ aTypeTerm = aTypeName <|> aTypeVariable <|> parens aType <?> "Type Term"
 aType :: EParser ParsedType
 aType = do
   pos        <- getPosition
-  paramTypes <- sepBy1 aTypeCall comma
+  paramTypes <- sepBy aTypeCall comma
   funcReturn <- optionMaybe $ do
       _ <- symbol "->"
       aTypeTerm

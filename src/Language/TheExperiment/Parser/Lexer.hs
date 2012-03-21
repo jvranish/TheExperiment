@@ -4,7 +4,7 @@ import Text.Parsec
 import qualified Text.Parsec.Token as T
 
 import Control.Monad
-import qualified Control.Monad.State as S
+import qualified Control.Monad.Trans.State as S
 
 type EParser a = ParsecT String () (S.State SourcePos) a
 

@@ -24,10 +24,10 @@ Library
     Build-Depends: base >= 4 && < 5,
                    transformers  >= 0.2.2.0 && < 0.3,
                    parsec >= 3.0.1 && < 3.2,
-                   pretty >= 1.1.1.0 && < 1.2,
+                   pretty >= 1.0.1.0 && < 1.2,
                    language-c >= 0.4 && < 0.5,
                    containers -any,
-                   QuickCheck >= 2.4.2,
+                   QuickCheck >= 2.4,
                    fixed-list >= 0.1.5,
                    prettyclass >= 1.0.0.0,
                    mtl >= 2.0.1.0,
@@ -43,28 +43,32 @@ Library
         Language.TheExperiment.AST.Statement
         Language.TheExperiment.AST.Type
         Language.TheExperiment.Builtin
-        Language.TheExperiment.CodeGen
-        Language.TheExperiment.CodeGenType
-        Language.TheExperiment.Compile
-        Language.TheExperiment.Inferrer
+        -- Language.TheExperiment.CodeGen
+        -- Language.TheExperiment.CodeGenType
+        -- Language.TheExperiment.Compile
+        -- Language.TheExperiment.Inferrer
         Language.TheExperiment.Misc
         Language.TheExperiment.Parser
         Language.TheExperiment.Parser.Expression
         Language.TheExperiment.Parser.Lexer
         Language.TheExperiment.Parser.Statement
         Language.TheExperiment.Parser.Literal
-        Language.TheExperiment.PrettyPrint
+        -- Language.TheExperiment.PrettyPrint
 
     ghc-options:        -Wall
     hs-source-dirs:     src
 
--- Test-Suite runTests
---     type:       exitcode-stdio-1.0
---     main-is:    RunTests.hs
---     build-depends: base >=4 && <=5,
---                    transformers  >= 0.2.2.0 && < 0.3,
---                    parsec >= 3.0.1 && < 3.2,
---                    pretty >= 1.0 && < 1.1,
---                    language-c >= 0.4 && < 0.5,
---                    containers -any
---     hs-source-dirs:     src
+Test-Suite runTests
+   type:       exitcode-stdio-1.0
+   main-is:    test_runner.hs
+   build-depends: base >=4 && <=5,
+                  transformers  >= 0.2.2.0 && < 0.3,
+                  parsec >= 3.0.1 && < 3.2,
+                  pretty >= 1.0 && < 1.1,
+                  language-c >= 0.4 && < 0.5,
+                  fixed-list >= 0.1.5,
+                  indents >= 0.3.2,
+                  HUnit >= 1.2 && < 1.3,
+                  hspec >= 0.9 && < 1.0,
+                  containers -any
+   hs-source-dirs:     src, test

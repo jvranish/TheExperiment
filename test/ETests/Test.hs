@@ -10,7 +10,8 @@ import ETests.Pretty.Type
 
 runTests :: IO ()
 runTests = do
-  testPrettyTypeSignature
-  testPrettyType
   testParseTypeSignature
   testParseType
+  testPrettyTypeSignature
+  testPrettyType
+  return ()

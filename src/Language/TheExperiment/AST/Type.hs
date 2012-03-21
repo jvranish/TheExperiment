@@ -34,7 +34,3 @@ data ParsedType = TypeName     { typePos  :: SourcePos
                                }
  deriving (Show, Eq, Ord)
 
-testTypeComp :: ParsedType -> ParsedType -> Bool
-testTypeComp a b = a { typePos = initPos } == b { typePos = initPos }
-  where
-    initPos = initialPos "test"
