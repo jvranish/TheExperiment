@@ -1,6 +1,8 @@
 module ETests.Pretty.Type 
   ( testPrettyTypeSignature
   , testPrettyType
+  , prettyTypeSignatureSpecs
+  , prettyTypeSpecs 
   ) where
 
 import Control.Applicative

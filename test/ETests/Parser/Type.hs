@@ -1,6 +1,8 @@
 module ETests.Parser.Type 
   ( testParseTypeSignature
   , testParseType
+  , aTypeSignatureSpecs
+  , aTypeSpecs
   ) where
 
 import Control.Applicative

@@ -2,5 +2,7 @@ module Main (main) where
 
 import ETests.Test
 
+import Test.Hspec
+
 main :: IO ()
-main = runTests
+main = hspecX eSpecs

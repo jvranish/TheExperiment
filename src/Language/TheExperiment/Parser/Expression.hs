@@ -7,7 +7,7 @@ import Language.TheExperiment.Parser.Lexer
 --import Language.TheExperiment.Parser.Literal
 
 
-
+-- chain error things together
 type ParsedExpr = Expr ()
 
 anExpr :: EParser ParsedExpr
