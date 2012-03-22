@@ -8,7 +8,6 @@ module ETests.Parser.Type
 import Control.Applicative
 
 import Text.Parsec
-import Text.Parsec.Pos
 
 import Language.TheExperiment.AST.Type
 import Language.TheExperiment.Parser
@@ -17,9 +16,6 @@ import Language.TheExperiment.Parser.Type
 import ETests.Utils
 
 import Test.Hspec
-import Test.Hspec.HUnit()
-import Test.HUnit
-
 
 testParseTypeSignature :: IO Specs
 testParseTypeSignature = hspec aTypeSignatureSpecs

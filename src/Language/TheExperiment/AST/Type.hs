@@ -8,9 +8,6 @@ module Language.TheExperiment.AST.Type where
 
 import Text.Parsec.Pos
 
-import Data.Foldable
-import Data.Traversable
-
 data TypeSignature = TypeSignature [TypeConstraint] ParsedType
   deriving (Show, Ord, Eq)
 

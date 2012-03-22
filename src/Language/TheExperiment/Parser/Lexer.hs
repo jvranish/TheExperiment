@@ -1,5 +1,7 @@
 module Language.TheExperiment.Parser.Lexer where
 
+import Data.Char
+
 import Text.Parsec
 import qualified Text.Parsec.Token as T
 
@@ -81,6 +83,13 @@ stringLiteral = T.stringLiteral lexer
 
 charLiteral :: EParser Char
 charLiteral = T.charLiteral lexer
+
+number :: Integer -> EParser Char -> EParser Integer 
+number base baseDigit
+        = do{ digits <- many1 baseDigit
+            ; let n = foldl (\x d -> base*x + toInteger (digitToInt d)) 0 digits
+            ; seq n (return n)
+            }
 
 float :: EParser Double
 float = T.float lexer

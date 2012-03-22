@@ -19,7 +19,6 @@ import ETests.Utils
 
 import Test.Hspec
 import Test.Hspec.HUnit()
-import Test.HUnit
 
 testPrettyTypeSignature :: IO Specs
 testPrettyTypeSignature = hspec prettyTypeSignatureSpecs

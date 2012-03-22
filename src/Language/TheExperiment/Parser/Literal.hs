@@ -9,16 +9,8 @@ import Numeric
 import Data.Maybe
 import Text.Parsec
 
+import Language.TheExperiment.AST.Expression
 import Language.TheExperiment.Parser.Lexer
-
-data Literal = StringLiteral String
-             | CharLiteral Char
-             | IntegerLiteral Integer
-             | BinLiteral Integer
-             | HexLiteral Integer
-             | OctalLiteral Integer
-             | FloatLiteral String Double -- String is parsed representation.
-    deriving (Show, Eq, Ord)
 
 readStdInt :: Num a => a -> String -> a
 readStdInt base str = val
@@ -38,16 +30,27 @@ aNumericLiteral prefix digits cons = do
 aBinLiteral :: EParser Literal
 aBinLiteral = aNumericLiteral prefix ['0'..'1'] BinLiteral
   where
-    prefix = char '0' >> (char 'b' <|> char 'B')
+    prefix = try $ char '0' >> (char 'b' <|> char 'B')
 
 aFloatLiteral :: EParser Literal
 aFloatLiteral = do
-  whole <- many1 $ oneOf ['0'..'9']
-  d     <- char '.'
+  (prefix, whole, d) <- try $ do
+    prefix <-  liftM return (char '-')
+           <|> liftM return (char '+')
+           <|> return ""
+    whole <- many1 $ oneOf ['0'..'9']
+    d     <- char '.'
+    return (prefix, whole, d)
+
   frac  <- many1 $ oneOf ['0'..'9']
 
-  let str = whole ++ (d : frac)
+  let str = prefix ++ whole ++ (d : frac)
   return $ FloatLiteral str (read str)
+
+sign :: (Num a) => EParser (a -> a)
+sign = (char '-' >> return negate)
+   <|> (char '+' >> return id)
+   <|> return id
 
 aStringLiteral :: EParser Literal
 aStringLiteral = liftM StringLiteral stringLiteral
@@ -56,19 +59,21 @@ aCharLiteral :: EParser Literal
 aCharLiteral = liftM CharLiteral charLiteral
 
 aHexLiteral :: EParser Literal
-aHexLiteral = liftM HexLiteral hexadecimal
+aHexLiteral = liftM HexLiteral ((try $ char '0' >> oneOf "xX") >> number 16 hexDigit)
 
 aOctalLiteral :: EParser Literal
-aOctalLiteral = liftM OctalLiteral octal
+aOctalLiteral = liftM OctalLiteral ((try $ char '0' >> oneOf "oO") >> number 8 octDigit)
 
 aDecLiteral :: EParser Literal
-aDecLiteral = liftM IntegerLiteral decimal
+aDecLiteral = liftM IntegerLiteral $ do
+  f <- sign
+  liftM f decimal
 
 aLiteral :: EParser Literal
-aLiteral = try aStringLiteral
-       <|> try aCharLiteral
-       <|> try aFloatLiteral
-       <|> try aBinLiteral
-       <|> try aHexLiteral
-       <|> try aOctalLiteral
-       <|>     aDecLiteral
+aLiteral = aStringLiteral
+       <|> aCharLiteral
+       <|> aFloatLiteral
+       <|> aBinLiteral
+       <|> aHexLiteral
+       <|> aOctalLiteral
+       <|> aDecLiteral

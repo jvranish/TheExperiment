@@ -4,6 +4,7 @@ import Control.Monad (unless)
 import Text.Parsec.Pos
 
 import Language.TheExperiment.AST.Type
+import Language.TheExperiment.AST.Expression
 
 import Test.HUnit
 
@@ -29,6 +30,9 @@ instance TestComp TypeSignature where
 
 instance TestComp TypeConstraint where
   testComp (TypeConstraint a as) (TypeConstraint b bs) = a == b && testComp as bs
+
+
+instance TestComp Literal
 
 
 eTestAssertEqual :: (TestComp a, Show a) => String -> a -> a -> Assertion
