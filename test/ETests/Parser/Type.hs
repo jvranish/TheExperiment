@@ -57,6 +57,8 @@ aTypeSignatureSpecs = describe "aTypeSignature" $
                 , pTypeVariable "b"]
                 (pTypeVariable "b") )
         )
+    , it "Gives good error messages" $
+        pending "put some thought into this, there are several cases that are not perfect"
     ]
   where
     parsesToSig input expected = parsesTo input (TypeSignature [] expected)
@@ -96,6 +98,9 @@ aTypeTestCases parsesTo =
   , it "Parses a TypeCall" $
       "F a" `parsesTo` 
         (pTypeCall (pTypeName "F") [pTypeVariable "a"])
+  , it "Parses a TypeCall" $
+      "a b c" `parsesTo` 
+        (pTypeCall (pTypeVariable "a") [pTypeVariable "b", pTypeVariable "c"])
   , it "Parses a TypeCall with a function parameter" $
       "F (-> C)" `parsesTo` 
         (pTypeCall (pTypeName "F") [pFunctionType [] (pTypeName "C")])
@@ -106,6 +111,8 @@ aTypeTestCases parsesTo =
             , pFunctionType [pTypeVariable "a"] (pTypeVariable "b")
             ]
             (pTypeVariable "c"))
+  , it "Gives good error messages" $
+        pending "put some thought into this, there are several cases that are not perfect"
   ]
 
 pTypeName :: String -> ParsedType
