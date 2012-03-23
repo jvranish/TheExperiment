@@ -27,11 +27,6 @@ aNumericLiteral prefix digits cons = do
   lit <- many1 $ oneOf digits
   return $ cons $ readStdInt (fromIntegral $ length digits) lit
 
-aBinLiteral :: EParser Literal
-aBinLiteral = aNumericLiteral prefix ['0'..'1'] BinLiteral
-  where
-    prefix = try $ char '0' >> (char 'b' <|> char 'B')
-
 aFloatLiteral :: EParser Literal
 aFloatLiteral = do
   (prefix, whole, d) <- try $ do
@@ -53,21 +48,26 @@ sign = (char '-' >> return negate)
    <|> return id
 
 aStringLiteral :: EParser Literal
-aStringLiteral = liftM StringLiteral stringLiteral
+aStringLiteral = liftM StringLiteral stringLiteral <?> "string literal"
 
 aCharLiteral :: EParser Literal
-aCharLiteral = liftM CharLiteral charLiteral
+aCharLiteral = liftM CharLiteral charLiteral <?> "character literal"
 
 aHexLiteral :: EParser Literal
-aHexLiteral = liftM HexLiteral ((try $ char '0' >> oneOf "xX") >> number 16 hexDigit)
+aHexLiteral = liftM HexLiteral ((try $ char '0' >> oneOf "xX") >> number 16 hexDigit) <?> "hexadecimal literal"
 
 aOctalLiteral :: EParser Literal
-aOctalLiteral = liftM OctalLiteral ((try $ char '0' >> oneOf "oO") >> number 8 octDigit)
+aOctalLiteral = liftM OctalLiteral ((try $ char '0' >> oneOf "oO") >> number 8 octDigit)  <?> "octal literal"
 
 aDecLiteral :: EParser Literal
 aDecLiteral = liftM IntegerLiteral $ do
   f <- sign
-  liftM f decimal
+  liftM f decimal <?> "decimal literal"
+
+aBinLiteral :: EParser Literal
+aBinLiteral = aNumericLiteral prefix ['0'..'1'] BinLiteral <?> "binary literal"
+  where
+    prefix = try $ char '0' >> (char 'b' <|> char 'B')
 
 aLiteral :: EParser Literal
 aLiteral = aStringLiteral

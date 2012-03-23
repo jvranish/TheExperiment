@@ -2,6 +2,7 @@ module ETests.Utils where
 
 import Control.Monad (unless)
 import Text.Parsec.Pos
+import Text.Parsec.Error
 
 import Language.TheExperiment.AST.Type
 import Language.TheExperiment.AST.Expression
@@ -33,13 +34,30 @@ instance TestComp TypeConstraint where
 
 
 instance TestComp Literal
+instance (TestComp a, TestComp b) => TestComp (Either a b)
+instance TestComp Message
 
+instance Show Message where
+  show (SysUnExpect s) = "SysUnExpect " ++ s
+  show (UnExpect s) = "UnExpect " ++ s
+  show (Expect s) = "Expect " ++ s
+  show (Message s) = "Message " ++ s
 
 eTestAssertEqual :: (TestComp a, Show a) => String -> a -> a -> Assertion
 eTestAssertEqual preface expected actual =
   unless (actual `testComp` expected) (assertFailure msg)
  where msg = (if null preface then "" else preface ++ "\n") ++
              "expected: " ++ show expected ++ "\n but got: " ++ show actual
+
+mapLeft :: (a -> b) -> Either a c -> Either b c
+mapLeft f (Left a) = Left $ f a
+mapLeft _ (Right a) = Right a
+
+eTestParse :: (TestComp a, Show a) => String -> Either [Message] a -> Either ParseError a -> Assertion
+eTestParse preface expected actual =
+  unless ((mapLeft errorMessages actual) `testComp` expected) (assertFailure msg)
+ where msg = (if null preface then "" else preface ++ "\n") ++
+             "expected: " ++ show expected ++ "\n but got: " ++ show (mapLeft errorMessages actual) --actual
 
 blankPos :: SourcePos
 blankPos = initialPos "tests"
