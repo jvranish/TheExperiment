@@ -61,6 +61,10 @@ instance TestComp (Statement ()) where
     , testComp b b'
     , testComp c c'
     ]
+  testComp (CallStmt _ a b) (CallStmt _ a' b') = and
+    [ testComp a a'
+    , testComp b b'
+    ]
 
 instance Show Message where
   show (SysUnExpect s) = "SysUnExpect " ++ s
