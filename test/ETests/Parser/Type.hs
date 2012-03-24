@@ -16,6 +16,7 @@ import Language.TheExperiment.Parser.Type
 import ETests.Utils
 
 import Test.Hspec
+import Test.Hspec.HUnit
 
 testParseTypeSignature :: IO Specs
 testParseTypeSignature = hspec aTypeSignatureSpecs
