@@ -54,7 +54,7 @@ eLanguageDef = T.LanguageDef
   , T.opStart         = opChars
   , T.opLetter        = opChars
   , T.reservedOpNames = []
-  , T.reservedNames   = ["def", "type", "var", "foreign", "return"]
+  , T.reservedNames   = ["block", "def", "type", "var", "foreign", "return"]
   , T.caseSensitive   = True
   }
 

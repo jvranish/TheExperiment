@@ -33,12 +33,12 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                , nativeDefName :: String
                                , foreignName   :: String
                                } -- foreign cFunction "c_function"
-                  | FunctionDef { defnPos           :: SourcePos
-                                , defnNodeData      :: a
-                                , functionName      :: String
-                                , functionParams    :: [Variable a]
-                                , functionRet       :: a
-                                , functionStatement :: Statement a
+                  | FunctionDef { defnPos        :: SourcePos
+                                , defnNodeData   :: a
+                                , functionName   :: String
+                                , functionParams :: [Variable a]
+                                , functionRet    :: a
+                                , functionBlock  :: RawBlock a
                                 }
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
@@ -70,8 +70,14 @@ data Statement a
                    }
         | Block    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
-                   , blockBody    :: [DefOrStatement a]
+                   , rawBlock     :: RawBlock a
                    }
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+data RawBlock a = RawBlock { blockPos      :: SourcePos
+                           , blockNodeData :: a
+                           , blockBody    :: [DefOrStatement a]
+                           }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data DefOrStatement a = Def (Definition a)

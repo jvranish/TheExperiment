@@ -40,7 +40,7 @@ aFunctionDef :: EParser ParsedDefinition
 aFunctionDef = liftM4p FunctionDef (reserved "def" >> lowerIdent)
                                    (option [] $ parens $ commaSep1 aVariable)
                                    (return ())
-                                   (reservedOp ":" >> aStatement)
+                                   (reservedOp ":" >> aRawBlock)
 
 aVariable :: EParser ParsedVariable
 aVariable = liftMp Variable lowerIdent
@@ -74,11 +74,9 @@ aVariable = liftMp Variable lowerIdent
         --            , blockBody    :: ([ParsedDefinition a], [Statement a])
         --            }
 
-
-
 aStatement :: EParser ParsedStatement
 aStatement = aReturn
-         <|> aAssign 
+         <|> aAssign
          <|> aCallStmt
          <|> aBlock
          <|> aIf
@@ -93,22 +91,19 @@ aAssign = liftM2p Assign (try $ identifier <* reservedOp "=") anExpr
 aCallStmt :: EParser ParsedStatement
 aCallStmt = liftMp CallStmt aCall
 
+aRawBlock :: EParser (RawBlock ())
+aRawBlock = liftMp RawBlock (block $ aDefOrStatement)
+
+aBlock :: EParser ParsedStatement
+aBlock = liftMp Block (reserved "block" >> reservedOp ":" >> aRawBlock)
+
 aIf :: EParser ParsedStatement
 aIf = undefined
 
 aWhile :: EParser ParsedStatement
 aWhile = undefined
 
-aBlock :: EParser ParsedStatement
-aBlock = liftMp Block (block $ aDefOrStatement)
-
 aDefOrStatement :: EParser ParsedDefOrStatement
 aDefOrStatement = liftM Def aDefinition
               <|> liftM Stmt aStatement
-
-
-
-
-
-
 
