@@ -1,5 +1,5 @@
 #!/bin/sh
 
-cabal-dev configure --enable-tests --sandbox=sandbox
+cabal-dev configure --enable-tests
 cabal-dev build
-cabal-dev test
+./dist/build/runTests/runTests
