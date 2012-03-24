@@ -1,3 +1,4 @@
 language: haskell
+script: "runhaskell -isrc:test test/test_runner.hs"
 notifications:
   email: false
