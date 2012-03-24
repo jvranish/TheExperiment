@@ -13,9 +13,6 @@ import Data.Traversable
 import Language.TheExperiment.AST.Expression
 import Language.TheExperiment.AST.Type
 
-data Module a = Module SourcePos [Definition a]
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
-
 data Definition a = TypeDef { defnPos      :: SourcePos
                             , defnNodeData :: a
                             , typeDefName  :: String

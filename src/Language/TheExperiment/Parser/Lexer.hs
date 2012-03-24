@@ -76,6 +76,9 @@ lexeme = T.lexeme lexer
 comma :: EParser String
 comma = T.comma lexer
 
+whiteSpace :: EParser ()
+whiteSpace = T.whiteSpace lexer
+
 commaSep1 :: EParser a -> EParser [a]
 commaSep1 = T.commaSep1 lexer
 
