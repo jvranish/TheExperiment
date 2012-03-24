@@ -32,6 +32,7 @@ Library
                    fixed-list >= 0.1.5,
                    prettyclass >= 1.0.0.0,
                    mtl >= 2.0.1.0,
+                   hspec >= 0.9 && < 1.0,
                    indents >= 0.3.2
 
     Exposed-Modules:
