@@ -65,6 +65,28 @@ instance TestComp (Statement ()) where
     [ testComp a a'
     , testComp b b'
     ]
+  testComp (Block _ a b) (Block _ a' b') = and
+    [ testComp a a'
+    , testComp b b'
+    ]
+
+instance TestComp (RawBlock ()) where
+  testComp (RawBlock _ a b) (RawBlock _ a' b') = and
+    [ testComp a a'
+    , testComp b b'
+    ]
+
+instance TestComp (DefOrStatement ()) where
+  testComp (Def a) (Def a') = testComp a a'
+  testComp (Stmt a) (Stmt a') = testComp a a'
+  testComp _ _ = False
+
+instance TestComp (Definition ()) where
+  testComp (TypeDef _ a b c) (TypeDef _ a' b' c') = and
+    [ testComp a a'
+    , testComp b b'
+    , testComp c c'
+    ]
 
 instance Show Message where
   show (SysUnExpect s) = "SysUnExpect " ++ s

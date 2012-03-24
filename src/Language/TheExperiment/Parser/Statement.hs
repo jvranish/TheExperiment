@@ -28,7 +28,8 @@ aTypeDef :: EParser ParsedDefinition
 aTypeDef = liftM2p TypeDef (reserved "type" >> upperIdent) (reservedOp "=" >> aType)
 
 aDefSignature :: EParser ParsedDefinition
-aDefSignature = liftM2p DefSignature (commaSep1 lowerIdent) (reservedOp "::" >> aTypeSignature)
+-- aDefSignature = liftM2p DefSignature (commaSep1 lowerIdent) (reservedOp "::" >> aTypeSignature)
+aDefSignature = liftM2p DefSignature (try $ commaSep1 lowerIdent <* reservedOp "::") aTypeSignature
 
 aVariableDef :: EParser ParsedDefinition
 aVariableDef = liftMp VariableDef (reserved "var" >> aVariable)
@@ -92,7 +93,7 @@ aCallStmt :: EParser ParsedStatement
 aCallStmt = liftMp CallStmt aCall
 
 aRawBlock :: EParser (RawBlock ())
-aRawBlock = liftMp RawBlock (block $ aDefOrStatement)
+aRawBlock = liftMp RawBlock $ block aDefOrStatement
 
 aBlock :: EParser ParsedStatement
 aBlock = liftMp Block (reserved "block" >> reservedOp ":" >> aRawBlock)
@@ -104,6 +105,6 @@ aWhile :: EParser ParsedStatement
 aWhile = undefined
 
 aDefOrStatement :: EParser ParsedDefOrStatement
-aDefOrStatement = liftM Def aDefinition
+aDefOrStatement = liftM Def  aDefinition
               <|> liftM Stmt aStatement
 
