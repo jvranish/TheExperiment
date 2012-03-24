@@ -52,8 +52,8 @@ data Statement a
         | If       { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , ifCond       :: Expr a
-                   , ifThen       :: Statement a
-                   , ifElse       :: Maybe (Statement a)
+                   , ifThen       :: RawBlock a
+                   , ifElse       :: Maybe (RawBlock a) -- RawBlock || If in the case of elif
                    }
         | While    { stmtPos      :: SourcePos
                    , stmtNodeData :: a

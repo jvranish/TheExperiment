@@ -49,6 +49,11 @@ instance (TestComp a, TestComp b) => TestComp (Either a b) where
   testComp (Right a) (Right b) = testComp a b
   testComp _         _         = False
 
+instance (TestComp a) => TestComp (Maybe a) where
+  testComp (Just a) (Just a') = testComp a a'
+  testComp Nothing Nothing    = True
+  testComp _ _                = False
+
 instance TestComp Message
 
 instance TestComp (Statement ()) where
@@ -68,6 +73,12 @@ instance TestComp (Statement ()) where
   testComp (Block _ a b) (Block _ a' b') = and
     [ testComp a a'
     , testComp b b'
+    ]
+  testComp (If _ a b c d) (If _ a' b' c' d') = and
+    [ testComp a a'
+    , testComp b b'
+    , testComp c c'
+    , testComp d d'
     ]
 
 instance TestComp (RawBlock ()) where

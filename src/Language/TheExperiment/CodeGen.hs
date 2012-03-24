@@ -140,8 +140,8 @@ genStatement (If { stmtPos = pos
                  , ifElse = elseStmt } ) = 
     CIf 
         (genExpr cond)
-        (genStatement thenStmt)
-        (fmap genStatement elseStmt)
+        (genRawBlock thenStmt)
+        (fmap genRawBlock elseStmt)
         (getNodeInfo pos)
 genStatement (While { stmtPos = pos
                     , whileCond = cond

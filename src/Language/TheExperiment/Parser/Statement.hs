@@ -80,7 +80,7 @@ aStatement = aReturn
          <|> aAssign
          <|> aCallStmt
          <|> aBlock
-         <|> aIf
+         <|> anIf
          <|> aWhile
 
 aReturn :: EParser ParsedStatement
@@ -98,8 +98,18 @@ aRawBlock = liftMp RawBlock $ block aDefOrStatement
 aBlock :: EParser ParsedStatement
 aBlock = liftMp Block (reserved "block" >> reservedOp ":" >> aRawBlock)
 
-aIf :: EParser ParsedStatement
-aIf = undefined
+anIf :: EParser ParsedStatement
+anIf = do
+  p <- getPosition
+  reserved "if"
+  e <- anExpr
+  reservedOp ":"
+  ifThen <- aRawBlock
+  ifElse <- optionMaybe $ do
+              reserved "else"
+              reservedOp ":"
+              aRawBlock
+  return $ If p () e ifThen ifElse
 
 aWhile :: EParser ParsedStatement
 aWhile = undefined

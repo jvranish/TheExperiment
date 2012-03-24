@@ -33,6 +33,12 @@ statementTestCases parsesTo =
               , "       bar = 10"
               , "       baz = foo"
               ] `parsesTo` (Right pBlock)
+  , it "parses an 'if'" $ -- how do we want to handle elif?
+      unlines [ "if boop:"
+              , "  x = 1"
+              , "else:"
+              , "  x = 2"
+              ] `parsesTo` (Right pIf)
   ]
 
 pReturn :: ParsedStatement
@@ -57,3 +63,12 @@ pBlock = Block blankPos () rawBlock
     s1 = Stmt $ Assign blankPos () "foo" (Literal blankPos () $ IntegerLiteral 9)
     s2 = Stmt $ Assign blankPos () "bar" (Literal blankPos () $ IntegerLiteral 10)
     s3 = Stmt $ Assign blankPos () "baz" (Identifier blankPos () "foo" NotOperator)
+
+pIf :: ParsedStatement
+pIf = If blankPos () cond ifThen (Just ifElse)
+  where
+    cond   = Identifier blankPos () "boop" NotOperator
+    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" (Literal blankPos () $ IntegerLiteral 1)
+                                  ]
+    ifElse = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" (Literal blankPos () $ IntegerLiteral 2)
+                                  ]
