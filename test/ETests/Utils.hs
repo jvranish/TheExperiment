@@ -1,3 +1,4 @@
+{-#Language FlexibleInstances #-}
 module ETests.Utils where
 
 import Control.Monad (unless)
@@ -34,6 +35,8 @@ instance TestComp TypeConstraint where
 
 
 instance TestComp Literal
+instance TestComp (Expr ())
+
 instance (TestComp a, TestComp b) => TestComp (Either a b)
 instance TestComp Message
 

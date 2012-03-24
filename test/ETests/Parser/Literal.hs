@@ -1,6 +1,7 @@
 module ETests.Parser.Literal
   ( testParseLiteral
   , aLiteralSpecs
+  , aLiteralTestCases
   ) where
 
 import Control.Applicative
@@ -14,12 +15,19 @@ import Language.TheExperiment.Parser
 import ETests.Utils
 
 import Test.Hspec
+import Test.Hspec.HUnit()
 
 testParseLiteral :: IO Specs
 testParseLiteral = hspec aLiteralSpecs
 
+
 aLiteralSpecs :: Specs
-aLiteralSpecs = describe "aLiteral" $
+aLiteralSpecs = describe "aLiteral" $ aLiteralTestCases parsesTo
+  where
+    parsesTo input expected = eTestParse "aLiteral" expected (runEParser "tests" input (aLiteral <* eof))
+
+aLiteralTestCases :: (String -> Either [Message] Literal -> IO ()) -> [Specs]
+aLiteralTestCases parsesTo = 
     [ it "Parses a zero integer literal" $
         "0" `parsesTo` (Right $ IntegerLiteral 0)
     , it "Parses an integer literal" $
@@ -62,6 +70,3 @@ aLiteralSpecs = describe "aLiteral" $
                 \ exception are constant expressions, but we might handle\
                 \ that in the code generator"
     ]
-  where
-    parsesTo input expected = eTestParse "aLiteral" expected (runEParser "tests" input (aLiteral <* eof))
-
