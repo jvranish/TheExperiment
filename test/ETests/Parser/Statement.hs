@@ -1,24 +1,27 @@
+module ETests.Parser.Statement where
 
+import Control.Applicative
 
-module ETests.Parser.Statement
-  ( testParseDefinition
-  , testParseStatment
-  ) where
+import Test.Hspec
+
+import ETests.Utils
 
 import Text.Parsec
-import Text.Parsec.Pos
+import Text.Parsec.Error
 
 import Language.TheExperiment.AST
+import Language.TheExperiment.Parser
 import Language.TheExperiment.Parser.Statement
 
-blankPos :: SourcePos
-blankPos = initialPos "test"
+statementSpecs :: Specs
+statementSpecs = describe "aStatement" (statementTestCases parsesTo)
+  where
+    parsesTo input expected = eTestParse "aStmt" expected (runEParser "tests" input (aStatement <* eof))
 
+statementTestCases :: (String -> Either [Message] ParsedStatement -> IO ()) -> [Specs]
+statementTestCases parsesTo = 
+  [ it "parses a `return` statement" $
+      "return 9" `parsesTo` (Right $ pReturn "9")
+  ]
 
-testParseDefinition = undefined
-
-
-testParseStatment = undefined
-
-
-
+pReturn expr = Return blankPos () (Literal blankPos () (IntegerLiteral 9))

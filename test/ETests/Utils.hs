@@ -7,6 +7,7 @@ import Text.Parsec.Error
 
 import Language.TheExperiment.AST.Type
 import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.AST.Statement
 
 import Test.HUnit
 
@@ -49,6 +50,9 @@ instance (TestComp a, TestComp b) => TestComp (Either a b) where
   testComp _         _         = False
 
 instance TestComp Message
+
+instance TestComp (Statement ()) where
+  testComp (Return _ a e) (Return _ b f) = and [testComp a b, testComp e f]
 
 instance Show Message where
   show (SysUnExpect s) = "SysUnExpect " ++ s

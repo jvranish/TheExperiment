@@ -16,8 +16,6 @@ type ParsedStatement      = Statement ()
 type ParsedVariable       = Variable ()
 type ParsedDefOrStatement = DefOrStatement ()
 
-aParsedType = undefined
-
 aDefinition :: EParser ParsedDefinition
 aDefinition = aTypeDef
           <|> aDefSignature
@@ -26,16 +24,16 @@ aDefinition = aTypeDef
           <|> aFunctionDef
 
 aTypeDef :: EParser ParsedDefinition
-aTypeDef = liftM2p TypeDef (reserved "type" >> upperIdent) (reservedOp "=" >> aParsedType)
+aTypeDef = liftM2p TypeDef (reserved "type" >> upperIdent) (reservedOp "=" >> aType)
 
 aDefSignature :: EParser ParsedDefinition
-aDefSignature = liftM2p DefSignature (commaSep1 lowerIdent) (reservedOp "::" >> aParsedType)
+aDefSignature = liftM2p DefSignature (commaSep1 lowerIdent) (reservedOp "::" >> aTypeSignature)
 
 aVariableDef :: EParser ParsedDefinition
 aVariableDef = liftMp VariableDef (reserved "var" >> aVariable)
 
 aForeignDef :: EParser ParsedDefinition
-aForeignDef = liftM3p ForeignDef (reserved "foreign" >> lowerIdent) stringLiteral aParsedType
+aForeignDef = liftM2p ForeignDef (reserved "foreign" >> lowerIdent) stringLiteral
  
 aFunctionDef :: EParser ParsedDefinition
 aFunctionDef = liftM4p FunctionDef (reserved "def" >> lowerIdent)
@@ -78,11 +76,11 @@ aVariable = liftMp Variable lowerIdent
 
 
 aStatement :: EParser ParsedStatement
-aStatement = aAssign
+aStatement = aReturn
+         <|> aAssign 
          <|> aIf
          <|> aWhile
          <|> aCallStmt
-         <|> aReturn 
          <|> aBlock
 
 

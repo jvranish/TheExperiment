@@ -12,6 +12,7 @@ import ETests.Parser.Type
 import ETests.Pretty.Type
 import ETests.Parser.Literal
 import ETests.Parser.Expression
+import ETests.Parser.Statement
 
 eSpecs :: Specs
 eSpecs = concat $ [ aTypeSignatureSpecs
@@ -20,4 +21,5 @@ eSpecs = concat $ [ aTypeSignatureSpecs
                   , prettyTypeSpecs
                   , aLiteralSpecs
                   , anExprSpecs
+                  , statementSpecs
                   ]
