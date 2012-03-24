@@ -8,7 +8,7 @@ Author: John Van Enk <vanenkj@gmail.com> and Job Vranish <job.vranish@gmail.com>
 Maintainer: Job Vranish
 Stability: experimental
 Category: Language
-Cabal-Version: >= 1.10.2.0
+Cabal-Version: >= 1.10.1.0
 Build-Type: Simple
 
 source-repository head
