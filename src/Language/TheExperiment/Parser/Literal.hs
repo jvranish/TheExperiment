@@ -4,6 +4,7 @@ module Language.TheExperiment.Parser.Literal
   ) where
 
 import Control.Monad
+import Control.Applicative hiding ((<|>))
 
 import Numeric
 import Data.Maybe
@@ -70,10 +71,12 @@ aBinLiteral = aNumericLiteral prefix ['0'..'1'] BinLiteral <?> "binary literal"
     prefix = try $ char '0' >> (char 'b' <|> char 'B')
 
 aLiteral :: EParser Literal
-aLiteral = aStringLiteral
-       <|> aCharLiteral
-       <|> aFloatLiteral
-       <|> aBinLiteral
-       <|> aHexLiteral
-       <|> aOctalLiteral
-       <|> aDecLiteral
+aLiteral = aLiteral' <* whiteSpace
+  where
+    aLiteral' = aStringLiteral
+            <|> aCharLiteral
+            <|> aFloatLiteral
+            <|> aBinLiteral
+            <|> aHexLiteral
+            <|> aOctalLiteral
+            <|> aDecLiteral

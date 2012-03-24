@@ -32,6 +32,8 @@ aLiteralTestCases parsesTo =
         "0" `parsesTo` (Right $ IntegerLiteral 0)
     , it "Parses an integer literal" $
         "12345" `parsesTo` (Right $ IntegerLiteral 12345)
+    , it "Parses an integer literal with trailing whitespace" $
+        "12345   " `parsesTo` (Right $ IntegerLiteral 12345)
     , it "Parses an char literal" $
         "'a'" `parsesTo` (Right $ CharLiteral 'a')
     , it "Parses an string literal" $
