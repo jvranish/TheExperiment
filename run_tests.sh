@@ -1,1 +1,5 @@
-runhaskell -Wall -itest:src test/test_runner.hs 
+#!/bin/sh
+
+cabal-dev configure --enable-tests --sandbox=sandbox
+cabal-dev build
+cabal-dev test
