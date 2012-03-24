@@ -3,18 +3,13 @@ module ETests.Parser.Expression
   , anExprTestCases
   ) where
 
-
-import Control.Applicative
-
 import Text.Parsec
 import Text.Parsec.Error
 
 import Test.Hspec
 
 import Language.TheExperiment.AST
-import Language.TheExperiment.Parser.Expression
 import Language.TheExperiment.Parser
-
 
 import ETests.Parser.Literal
 import ETests.Utils
@@ -39,10 +34,16 @@ import ETests.Utils
 
 --foo(a, b, c)
 
+--runTestParser = eTestParse "anExpr" expected (runEParser "tests" input (anExpr <* eof))
+
+
+
 anExprSpecs :: Specs
 anExprSpecs = describe "anExpr" (anExprTestCases parsesTo)
   where
-    parsesTo input expected = eTestParse "anExpr" expected (runEParser "tests" input (anExpr <* eof))
+    parsesTo input expected = eTestParse "anExpr" expected $
+      runEParser "tests" (opDefs ++ input) $
+        (parseLex $ many anOpDef >>= putState . Operators >> anExpr)
 
 opDefs :: String
 opDefs = "infixl + add 4\
@@ -69,7 +70,7 @@ anExprTestCases parsesTo =
                                         [ pIdentifier "a"
                                         , pIdentifier "b"])
   , it "parses a basic left assoc infix operator" $
-      (opDefs ++ "a + b") `parsesTo` (Right $ pCall (pOperator "+" $ InL 4) 
+      (opDefs ++ "a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
                                                 [ pIdentifier "a"
                                                 , pIdentifier "b"])
   ]

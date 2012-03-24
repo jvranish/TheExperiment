@@ -3,6 +3,7 @@ module Language.TheExperiment.Parser
   , module Language.TheExperiment.Parser.Lexer
   , module Language.TheExperiment.Parser.Literal
   , module Language.TheExperiment.Parser.Statement
+  , module Language.TheExperiment.Parser.Module
   , runEParser
   ) where
 
@@ -13,6 +14,7 @@ import Language.TheExperiment.Parser.Expression
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Literal
 import Language.TheExperiment.Parser.Statement
+import Language.TheExperiment.Parser.Module
 
 
 runEParser :: String -> String -> EParser a -> Either ParseError a

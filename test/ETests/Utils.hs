@@ -41,8 +41,13 @@ instance TestComp (Expr ()) where
   testComp (Call _ a af as) (Call _ b bf bs) = testComp a b && testComp af bf && testComp as bs 
   testComp (Identifier _ a as aOp) (Identifier _ b bs bOp) = testComp a b && testComp as bs && testComp aOp bOp
   testComp (Literal _ a aLit) (Literal _ b bLit) = testComp a b && testComp aLit bLit
+  testComp _                  _ = False
 
-instance (TestComp a, TestComp b) => TestComp (Either a b)
+instance (TestComp a, TestComp b) => TestComp (Either a b) where
+  testComp (Left a)  (Left b)  = testComp a b
+  testComp (Right a) (Right b) = testComp a b
+  testComp _         _         = False
+
 instance TestComp Message
 
 instance Show Message where
