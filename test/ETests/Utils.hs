@@ -35,7 +35,12 @@ instance TestComp TypeConstraint where
 
 
 instance TestComp Literal
-instance TestComp (Expr ())
+instance TestComp ()
+instance TestComp OpFormat
+instance TestComp (Expr ()) where
+  testComp (Call _ a af as) (Call _ b bf bs) = testComp a b && testComp af bf && testComp as bs 
+  testComp (Identifier _ a as aOp) (Identifier _ b bs bOp) = testComp a b && testComp as bs && testComp aOp bOp
+  testComp (Literal _ a aLit) (Literal _ b bLit) = testComp a b && testComp aLit bLit
 
 instance (TestComp a, TestComp b) => TestComp (Either a b)
 instance TestComp Message

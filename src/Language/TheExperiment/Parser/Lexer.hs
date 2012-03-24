@@ -64,6 +64,9 @@ lexer = T.makeTokenParser eLanguageDef
 parens :: EParser a -> EParser a
 parens = T.parens lexer
 
+operator :: EParser String
+operator = T.operator lexer
+
 identifier :: EParser String
 identifier = T.identifier lexer
 
@@ -90,6 +93,9 @@ stringLiteral = T.stringLiteral lexer
 
 charLiteral :: EParser Char
 charLiteral = T.charLiteral lexer
+
+rational :: EParser Rational
+rational = liftM (either toRational toRational) (T.naturalOrFloat lexer)
 
 number :: Integer -> EParser Char -> EParser Integer 
 number base baseDigit
