@@ -35,8 +35,7 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                , defnNodeData  :: a
                                , nativeDefName :: String
                                , foreignName   :: String
-                               , nativeDefType :: ParsedType
-                               } -- foreign cFunction "c_function" (Int -> Int)
+                               } -- foreign cFunction "c_function"
                   | FunctionDef { defnPos           :: SourcePos
                                 , defnNodeData      :: a
                                 , functionName      :: String
