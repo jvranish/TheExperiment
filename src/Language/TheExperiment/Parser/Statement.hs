@@ -1,5 +1,6 @@
 module Language.TheExperiment.Parser.Statement where
 
+import Control.Applicative hiding ((<|>))
 import Control.Monad
 
 import Text.Parsec
@@ -78,27 +79,25 @@ aVariable = liftMp Variable lowerIdent
 aStatement :: EParser ParsedStatement
 aStatement = aReturn
          <|> aAssign 
-         <|> aIf
-         <|> aWhile
          <|> aCallStmt
          <|> aBlock
+         <|> aIf
+         <|> aWhile
 
+aReturn :: EParser ParsedStatement
+aReturn = liftMp Return (reserved "return" >> anExpr)
 
 aAssign :: EParser ParsedStatement
-aAssign = undefined -- liftM2p Assign identifier (reservedOp "=") 
+aAssign = liftM2p Assign (try $ identifier <* reservedOp "=") anExpr
+
+aCallStmt :: EParser ParsedStatement
+aCallStmt = liftMp CallStmt aCall
 
 aIf :: EParser ParsedStatement
 aIf = undefined
 
 aWhile :: EParser ParsedStatement
 aWhile = undefined
-
-aCallStmt :: EParser ParsedStatement
-aCallStmt = undefined
-
-aReturn :: EParser ParsedStatement
-aReturn = liftMp Return (reserved "return" >> anExpr)
-
 
 aBlock :: EParser ParsedStatement
 aBlock = liftMp Block (block $ aDefOrStatement)
