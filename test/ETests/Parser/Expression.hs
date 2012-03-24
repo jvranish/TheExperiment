@@ -1,6 +1,7 @@
 module ETests.Parser.Expression
   ( anExprSpecs
   , anExprTestCases
+  , opDefs
   ) where
 
 import Text.Parsec
@@ -13,30 +14,6 @@ import Language.TheExperiment.Parser
 
 import ETests.Parser.Literal
 import ETests.Utils
-
-
---data Expr a
---        = Call       { exprPos      :: SourcePos
---                     , exprNodeData :: a
---                     , callFunc     :: Expr a
---                     , callParams   :: [Expr a]
---                     }
---        | Identifier { exprPos      :: SourcePos
---                     , exprNodeData :: a
---                     , idName       :: String
---                     , opFormat     :: OpFormat
---                     }
---        | Literal    { exprPos      :: SourcePos
---                     , exprNodeData :: a
---                     , literal      :: Literal
---                     }
-
-
---foo(a, b, c)
-
---runTestParser = eTestParse "anExpr" expected (runEParser "tests" input (anExpr <* eof))
-
-
 
 anExprSpecs :: Specs
 anExprSpecs = describe "anExpr" (anExprTestCases parsesTo)
@@ -70,9 +47,20 @@ anExprTestCases parsesTo =
                                         [ pIdentifier "a"
                                         , pIdentifier "b"])
   , it "parses a basic left assoc infix operator" $
-      (opDefs ++ "a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
+      ("a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
                                                 [ pIdentifier "a"
                                                 , pIdentifier "b"])
+  , it "parses a basic left assoc infix operator with function call" $
+      ("a + foo(a, b)") `parsesTo` 
+        (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
+                    [ pIdentifier "a"
+                    , pCall (pIdentifier "foo")
+                        [ pIdentifier "a"
+                        , pIdentifier "b"
+                        ]
+                    ])
+  , it "parses all sorts of stuff" $
+      pending "add more tests!"
   ]
 
 pOperator :: String -> OpFormat -> ParsedExpr
