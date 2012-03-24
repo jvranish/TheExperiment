@@ -52,7 +52,15 @@ instance (TestComp a, TestComp b) => TestComp (Either a b) where
 instance TestComp Message
 
 instance TestComp (Statement ()) where
-  testComp (Return _ a e) (Return _ b f) = and [testComp a b, testComp e f]
+  testComp (Return _ a b) (Return _ a' b') = and
+    [ testComp a a'
+    , testComp b b'
+    ]
+  testComp (Assign _ a b c) (Assign _ a' b' c') = and
+    [ testComp a a'
+    , testComp b b'
+    , testComp c c'
+    ]
 
 instance Show Message where
   show (SysUnExpect s) = "SysUnExpect " ++ s

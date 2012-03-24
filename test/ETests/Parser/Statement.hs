@@ -20,8 +20,14 @@ statementSpecs = describe "aStatement" (statementTestCases parsesTo)
 
 statementTestCases :: (String -> Either [Message] ParsedStatement -> IO ()) -> [Specs]
 statementTestCases parsesTo = 
-  [ it "parses a `return` statement" $
-      "return 9" `parsesTo` (Right $ pReturn "9")
+  [ it "parses a return statement" $
+      "return 9" `parsesTo` (Right $ pReturn)
+  , it "parses an assignment" $
+      "foo = 9" `parsesTo` (Right $ pAssign)
   ]
 
-pReturn expr = Return blankPos () (Literal blankPos () (IntegerLiteral 9))
+pReturn :: ParsedStatement
+pReturn = Return blankPos () (Literal blankPos () (IntegerLiteral 9))
+
+pAssign :: ParsedStatement
+pAssign = Assign blankPos () "foo" (Literal blankPos () $ IntegerLiteral 9)

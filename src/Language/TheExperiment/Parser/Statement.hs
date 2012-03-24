@@ -85,7 +85,7 @@ aStatement = aReturn
 
 
 aAssign :: EParser ParsedStatement
-aAssign = undefined -- liftM2p Assign identifier (reservedOp "=") 
+aAssign = liftM2p Assign identifier ((reservedOp "=") >> anExpr)
 
 aIf :: EParser ParsedStatement
 aIf = undefined
