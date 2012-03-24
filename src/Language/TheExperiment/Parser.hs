@@ -16,7 +16,7 @@ import Language.TheExperiment.Parser.Statement
 
 
 runEParser :: String -> String -> EParser a -> Either ParseError a
-runEParser filename s p = runIndent filename $ runParserT p () filename s 
+runEParser filename s p = runIndent filename $ runParserT p (Operators []) filename s 
 
 --eParser :: String -> String -> Either ParseError Module
 --eParser filename s = runIndent filename $ runParserT aModule () filename s

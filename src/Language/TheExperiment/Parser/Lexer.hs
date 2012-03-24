@@ -3,12 +3,19 @@ module Language.TheExperiment.Parser.Lexer where
 import Data.Char
 
 import Text.Parsec
+import Text.Parsec.Expr
 import qualified Text.Parsec.Token as T
 
 import Control.Monad
 import qualified Control.Monad.Trans.State as S
 
-type EParser a = ParsecT String () (S.State SourcePos) a
+import Language.TheExperiment.AST.Expression
+
+type ParserOperator = Operator String Operators (S.State SourcePos) (Expr ())
+newtype Operators = Operators [(ParserOperator, Rational)]
+
+
+type EParser a = ParsecT String Operators (S.State SourcePos) a
 
 opChars :: Monad m => ParsecT String u m Char
 opChars = oneOf ":!#$%&*+./<=>?@\\^|-~"
@@ -51,7 +58,7 @@ eLanguageDef = T.LanguageDef
   , T.caseSensitive   = True
   }
 
-lexer :: Monad m => T.GenTokenParser String () m
+lexer :: Monad m => T.GenTokenParser String u m
 lexer = T.makeTokenParser eLanguageDef
 
 parens :: EParser a -> EParser a
