@@ -5,6 +5,7 @@ module ETests.Test
   , module ETests.Pretty.Type
   , module ETests.Pretty.Literal
   , module ETests.Pretty.Expression
+  , module ETests.CodeGen.Gen
   , eSpecs
   ) where
 
@@ -17,6 +18,7 @@ import ETests.Pretty.Literal
 import ETests.Parser.Expression
 import ETests.Pretty.Expression
 import ETests.Parser.Statement
+import ETests.CodeGen.Gen
 
 eSpecs :: Specs
 eSpecs = concat $ [ aTypeSignatureSpecs
@@ -28,4 +30,5 @@ eSpecs = concat $ [ aTypeSignatureSpecs
                   , anExprSpecs
                   , prettyExpressionSpecs
                   , statementSpecs
+                  , genExprSpecs
                   ]

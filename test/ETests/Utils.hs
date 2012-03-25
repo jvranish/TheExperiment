@@ -1,3 +1,4 @@
+{-#OPTIONS_GHC -fno-warn-orphans #-}
 {-#Language FlexibleInstances #-}
 module ETests.Utils where
 
@@ -85,6 +86,7 @@ instance TestComp (Statement ()) where
     , testComp b b'
     , testComp c c'
     ]
+  testComp _ _ = False
 
 instance TestComp (RawBlock ()) where
   testComp (RawBlock _ a b) (RawBlock _ a' b') = and
@@ -99,6 +101,7 @@ instance TestComp (ElseOrElif ()) where
     , testComp b b'
     , testComp c c'
     ]
+  testComp _ _ = False
 
 instance TestComp (DefOrStatement ()) where
   testComp (Def a) (Def a') = testComp a a'
@@ -111,6 +114,7 @@ instance TestComp (Definition ()) where
     , testComp b b'
     , testComp c c'
     ]
+  testComp _ _ = False
 
 instance Show Message where
   show (SysUnExpect s) = "SysUnExpect " ++ s

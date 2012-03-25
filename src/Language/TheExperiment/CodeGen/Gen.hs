@@ -1,4 +1,4 @@
-module Language.TheExperiment.CodeGen where
+module Language.TheExperiment.CodeGen.Gen where
 
 {-
 Notable features still missing:
@@ -28,10 +28,9 @@ import Language.C.Data.Ident
 import Language.C.Data.Node
 import Language.C.Data.Position
 
-import Language.TheExperiment.Type
 import Language.TheExperiment.AST
-import Language.TheExperiment.Builtin
-import Language.TheExperiment.CodeGenType
+import Language.TheExperiment.CodeGen.Builtin
+import Language.TheExperiment.CodeGen.Type
 
 getNodeInfo :: SourcePos -> NodeInfo
 getNodeInfo pos = OnlyPos cPos (cPos, 0)
@@ -104,6 +103,7 @@ genExpr (Literal { exprPos      = pos
             HexLiteral i     -> genIntLiteral pos typ i HexRepr
             OctalLiteral i   -> genIntLiteral pos typ i OctalRepr
             FloatLiteral f _ -> CFloatConst (readCFloat f) (getNodeInfo pos)
+            BinLiteral i     -> genIntLiteral pos typ i HexRepr
 genExpr (Identifier { exprPos = pos
                     , idName = name } ) = genVar pos name
 genExpr e@(Call { exprPos    = pos
@@ -173,29 +173,28 @@ genVarDef (Variable { varDefPos = pos
 
 genModule :: Module GenType -> CTranslUnit
 genModule (Module pos topLevels) = 
-    CTranslUnit (fmap genTopLevel $ filter foreignFilter topLevels) 
+    CTranslUnit (concatMap genTopLevel $ filter foreignFilter topLevels) 
                 (getNodeInfo pos)
 
 foreignFilter :: Definition a -> Bool
 foreignFilter (ForeignDef {}) = False
 foreignFilter _ = True
 
-genTopLevel :: Definition GenType -> CExtDecl
+genTopLevel :: Definition GenType -> [CExtDecl]
 -- #TODO we currently do not handle var defs with initializers
--- #TODO I'm filtering out the foreign defs but I don't like depending on that
-genTopLevel (VariableDef { variable = def } ) = CDeclExt $ genVarDef def
+genTopLevel (VariableDef { variable = def } ) = [CDeclExt $ genVarDef def]
 genTopLevel (TypeDef { defnPos = pos
                      , defnNodeData = t
                      , typeDefName = name } ) 
-            = CDeclExt $ genTypeDef pos name t
+            = [CDeclExt $ genTypeDef pos name t]
 genTopLevel (FunctionDef { defnPos = pos
                          , defnNodeData = _
                          , functionName = name
                          , functionParams = params
                          , functionRet = GenType retType _
                          , functionBlock = block } ) 
-            = CFDefExt $ genFuncDef pos name params retType block
-
+            = [CFDefExt $ genFuncDef pos name params retType block]
+genTopLevel _ = []
 
 genTypeDef :: SourcePos -> String -> GenType -> CDecl
 genTypeDef pos name t = 

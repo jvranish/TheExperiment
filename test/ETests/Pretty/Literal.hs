@@ -3,15 +3,12 @@ module ETests.Pretty.Literal
   , prettyLiteralTestCases
   ) where
 
-import Text.Parsec
-
 import Text.PrettyPrint.HughesPJ
 
 import Test.Hspec
 import Test.Hspec.HUnit()
 
 import Language.TheExperiment.Parser
-import Language.TheExperiment.Parser.Expression
 import Language.TheExperiment.Pretty.Literal
 
 import ETests.Utils

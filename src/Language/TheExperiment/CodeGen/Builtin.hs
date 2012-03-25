@@ -1,4 +1,4 @@
-module Language.TheExperiment.Builtin where
+module Language.TheExperiment.CodeGen.Builtin where
 
 
 import Language.C.Syntax.Ops
@@ -35,11 +35,3 @@ cUnaryOpTable = [ ("Builtin.addr",     CAdrOp)
                 , ("Builtin.logNeg",   CNegOp)
                 , ("Builtin.onesComp", CCompOp)
                 ]
-{-
-casts
-
-("Builtin.index", CIndex)
-
-CExpr -> CExpr -> NodeInfo -> CExpr
-
--}

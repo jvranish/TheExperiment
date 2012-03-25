@@ -10,8 +10,6 @@ import Test.Hspec
 import Test.Hspec.HUnit()
 
 import Language.TheExperiment.Parser
-import Language.TheExperiment.Parser.Expression
-import Language.TheExperiment.Pretty.Literal
 import Language.TheExperiment.Pretty.Expression
 
 import ETests.Pretty.Literal

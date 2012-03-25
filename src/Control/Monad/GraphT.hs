@@ -7,7 +7,7 @@ import Data.Traversable
 import Data.FixedList
 
 import Control.Applicative
-import Control.Monad hiding (mapM, mapM_, forM)
+import Control.Monad hiding (mapM, mapM_, forM, forM_)
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
@@ -104,7 +104,7 @@ copySubGraphWithRespectTo relevantNodes = do
       newRef newValue
   let lookupNew a = liftM fromJust $ lookupRef a $ zip relevantNodes newNodes
 
-  forM newNodes $ \x -> do
+  forM_ newNodes $ \x -> do
       v <- readRef x
       writeRef x =<< mapM lookupNew v
   return lookupNew

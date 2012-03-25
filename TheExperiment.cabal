@@ -44,9 +44,9 @@ Library
         Language.TheExperiment.AST.Expression
         Language.TheExperiment.AST.Statement
         Language.TheExperiment.AST.Type
-        Language.TheExperiment.Builtin
-        Language.TheExperiment.CodeGen
-        Language.TheExperiment.CodeGenType
+        Language.TheExperiment.CodeGen.Builtin
+        Language.TheExperiment.CodeGen.Gen
+        Language.TheExperiment.CodeGen.Type
         --Language.TheExperiment.Compile
         --Language.TheExperiment.Inferrer
         Language.TheExperiment.Misc
