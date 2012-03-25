@@ -16,6 +16,7 @@ type ParsedDefinition     = Definition ()
 type ParsedStatement      = Statement ()
 type ParsedVariable       = Variable ()
 type ParsedDefOrStatement = DefOrStatement ()
+type ParsedRawBlock       = RawBlock ()
 
 aDefinition :: EParser ParsedDefinition
 aDefinition = aTypeDef
@@ -92,7 +93,7 @@ aAssign = liftM2p Assign (try $ identifier <* reservedOp "=") anExpr
 aCallStmt :: EParser ParsedStatement
 aCallStmt = liftMp CallStmt aCall
 
-aRawBlock :: EParser (RawBlock ())
+aRawBlock :: EParser ParsedRawBlock
 aRawBlock = liftMp RawBlock $ block aDefOrStatement
 
 aBlock :: EParser ParsedStatement

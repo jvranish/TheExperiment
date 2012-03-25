@@ -118,3 +118,13 @@ octal = T.octal lexer
 
 hexadecimal :: EParser Integer
 hexadecimal = T.hexadecimal lexer
+
+parseLex :: EParser a -> EParser a
+parseLex p = do 
+  whiteSpace
+  x <- p
+  eof
+  return x
+
+
+

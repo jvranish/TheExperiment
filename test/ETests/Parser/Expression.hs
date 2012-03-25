@@ -2,6 +2,10 @@ module ETests.Parser.Expression
   ( anExprSpecs
   , anExprTestCases
   , opDefs
+  , pOperator
+  , pIdentifier
+  , pLiteral
+  , pCall
   ) where
 
 import Text.Parsec
@@ -24,6 +28,8 @@ anExprSpecs = describe "anExpr" (anExprTestCases parsesTo)
 
 opDefs :: String
 opDefs = "infixl + add 4\
+        \ prefix - neg 5\
+        \ postfix ++ inc 5\
         \ infixl - sub 4\
         \ infixl * mul 8\
         \ infixl / div 8\
@@ -47,12 +53,23 @@ anExprTestCases parsesTo =
                                         [ pIdentifier "a"
                                         , pIdentifier "b"])
   , it "parses a basic left assoc infix operator" $
-      ("a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
+      ("a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
                                                 [ pIdentifier "a"
                                                 , pIdentifier "b"])
+  , it "parses a basic prefix operator" $
+      ("-b") `parsesTo` (Right $ pCall (pOperator "Builtin.neg" $ Pre 5 "-") 
+                                                [ pIdentifier "b"])
+  , it "parses a basic postfix operator" $
+      ("b++") `parsesTo` (Right $ pCall (pOperator "Builtin.inc" $ Post 5 "++") 
+                                                [ pIdentifier "b"])
+  , it "parses a basic prefix with infix assoc infix operator" $
+      ("a + -b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
+                                                [ pIdentifier "a"
+                                                , pCall (pOperator "Builtin.neg" $ Pre 5 "-") 
+                                                  [ pIdentifier "b"]])
   , it "parses a basic left assoc infix operator with function call" $
       ("a + foo(a, b)") `parsesTo` 
-        (Right $ pCall (pOperator "Builtin.add" $ InL 4) 
+        (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
                     [ pIdentifier "a"
                     , pCall (pIdentifier "foo")
                         [ pIdentifier "a"

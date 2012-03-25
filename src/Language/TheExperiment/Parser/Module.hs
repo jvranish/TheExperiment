@@ -17,13 +17,6 @@ type ParsedModule = Module ()
 parseSource :: EParser ParsedModule
 parseSource = parseLex $ many anOpDef >>= putState . Operators >> aModule
 
-parseLex :: EParser a -> EParser a
-parseLex p = do 
-  whiteSpace
-  x <- p
-  eof
-  return x
-
 aModule :: EParser ParsedModule
 aModule = do
   pos <- getPosition -- hmm do I really want this?
@@ -46,8 +39,8 @@ anOpDef = anOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
       <|> anOpType "postfix" Post (Postfix . liftM call)
       <?> "operator definition"
   where
-    anOpType :: String                                -- tag
-             -> (Rational -> OpFormat)                -- fixityCons
+    anOpType :: String                                 -- tag
+             -> (Rational -> String -> OpFormat)       -- fixityCons
              -> (EParser (Expr ()) -> ParserOperator)  -- opCons
              -- take a parser for an operator and returns a
              -- ParserOperator suitable for an expression parser
@@ -66,7 +59,7 @@ anOpDef = anOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
                               , exprNodeData = ()
                               -- #TODO find a more general solution here:
                               , idName = "Builtin." ++ name
-                              , opFormat = fixityCons precedence }
+                              , opFormat = fixityCons precedence opName }
       return (opCons opParser, precedence)
     call f a    = call' f [a]
     call2 f a b = call' f [a, b]

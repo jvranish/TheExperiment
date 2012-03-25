@@ -45,11 +45,10 @@ data Literal = StringLiteral String
 
 -- format indicator for pretty printing (keeps track of precedence, etc...)
 data OpFormat = NotOperator
-              | ExplicitOperator
-              | In Rational
-              | InR Rational
-              | InL Rational
-              | Pre Rational
-              | Post Rational
+              | ExplicitOperator String
+              | In Rational String
+              | InR Rational String
+              | InL Rational String
+              | Pre Rational String 
+              | Post Rational String
   deriving (Show, Ord, Eq)
-
