@@ -123,7 +123,13 @@ anIf = do
       return $ Elif pos e elifBlock elifNext
 
 aWhile :: EParser ParsedStatement
-aWhile = undefined
+aWhile = do
+  p <- getPosition
+  reserved "while"
+  e <- anExpr
+  reservedOp ":"
+  whileBlock <- aRawBlock
+  return $ While p () e whileBlock
 
 aDefOrStatement :: EParser ParsedDefOrStatement
 aDefOrStatement = liftM Def  aDefinition

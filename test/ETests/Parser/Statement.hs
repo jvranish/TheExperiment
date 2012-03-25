@@ -59,6 +59,11 @@ statementTestCases parsesTo =
               , "else:"
               , "  x = 3"
               ] `parsesTo` (Right ifElifElseExample)
+  , it "parses a `while ...`" $
+    unlines [ "while zoop:"
+            , "  x = 1"
+            , "  y = 1"
+            ] `parsesTo` (Right whileExample)
   ]
 
 returnExample :: ParsedStatement
@@ -125,6 +130,16 @@ ifElifElseExample = If blankPos () cond thenBlock (Just elifBlock)
     lit1 = Literal blankPos () $ IntegerLiteral 1
     lit2 = Literal blankPos () $ IntegerLiteral 2
     lit3 = Literal blankPos () $ IntegerLiteral 3
+
+whileExample :: ParsedStatement
+whileExample = While blankPos () cond whileBlock
+  where
+    cond = Identifier blankPos () "zoop" NotOperator
+    whileBlock = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1
+                                      , Stmt $ Assign blankPos () "y" lit1
+                                      ]
+    lit1 = Literal blankPos () $ IntegerLiteral 1
+      
 
 pReturn :: ParsedExpr -> ParsedStatement
 pReturn expr = Return blankPos () expr

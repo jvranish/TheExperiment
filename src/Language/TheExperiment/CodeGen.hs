@@ -146,7 +146,7 @@ genStatement (If { stmtPos = pos
 genStatement (While { stmtPos = pos
                     , whileCond = cond
                     , whileBody = body } ) = 
-    CWhile (genExpr cond) (genStatement body) False (getNodeInfo pos)
+    CWhile (genExpr cond) (genRawBlock body) False (getNodeInfo pos)
 genStatement (CallStmt { stmtPos = pos
                        , stmtExpr = a }) =
     CExpr (Just $ genExpr a) (getNodeInfo pos)

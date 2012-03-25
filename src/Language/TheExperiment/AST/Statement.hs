@@ -58,7 +58,7 @@ data Statement a
         | While    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , whileCond    :: Expr a
-                   , whileBody    :: Statement a
+                   , whileBody    :: RawBlock a
                    }
         | CallStmt { stmtPos      :: SourcePos
                    , stmtNodeData :: a

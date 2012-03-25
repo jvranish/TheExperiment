@@ -80,6 +80,11 @@ instance TestComp (Statement ()) where
     , testComp c c'
     , testComp d d'
     ]
+  testComp (While _ a b c) (While _ a' b' c') = and
+    [ testComp a a'
+    , testComp b b'
+    , testComp c c'
+    ]
 
 instance TestComp (RawBlock ()) where
   testComp (RawBlock _ a b) (RawBlock _ a' b') = and
