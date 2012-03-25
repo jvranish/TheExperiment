@@ -1,20 +1,20 @@
 module ETests.Parser.Statement where
 
-import Control.Applicative
+-- import Control.Applicative
 
 import Test.Hspec
-import Test.Hspec.HUnit
+-- import Test.Hspec.HUnit
 
 import ETests.Utils
 
-import Text.Parsec
-import Text.Parsec.Indent
+-- import Text.Parsec
+-- import Text.Parsec.Indent
 import Text.Parsec.Error
 
 import Language.TheExperiment.AST
 import Language.TheExperiment.Parser
-import Language.TheExperiment.Parser.Module
-import Language.TheExperiment.Parser.Statement
+-- import Language.TheExperiment.Parser.Module
+-- import Language.TheExperiment.Parser.Statement
 import ETests.Parser.Expression
 
 statementSpecs :: Specs
@@ -77,35 +77,35 @@ callExample = pCallStmt call
              ]
 
 blockExample :: ParsedStatement
-blockExample = pBlock rawBlock
+blockExample = pBlock rawBlockExample
   where
-    rawBlock = pRawBlock [s1, s2, s3]
+    rawBlockExample = pRawBlock [s1, s2, s3]
     s1 = Stmt $ pAssign "foo" (pLiteral $ IntegerLiteral 9)
     s2 = Stmt $ pAssign "bar" (pLiteral $ IntegerLiteral 10)
     s3 = Stmt $ pAssign "baz" (pIdentifier "foo")
 
 ifExample :: ParsedStatement
-ifExample = If blankPos () cond ifThen Nothing
+ifExample = If blankPos () cond thenBlock Nothing
   where
-    cond   = Identifier blankPos () "boop" NotOperator
-    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
-    lit1 = Literal blankPos () $ IntegerLiteral 1
+    cond      = Identifier blankPos () "boop" NotOperator
+    thenBlock = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    lit1      = Literal blankPos () $ IntegerLiteral 1
 
 ifElseExample :: ParsedStatement
-ifElseExample = If blankPos () cond ifThen (Just ifElse)
+ifElseExample = If blankPos () cond thenBlock (Just elseBlock)
   where
-    cond   = Identifier blankPos () "boop" NotOperator
-    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
-    ifElse = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ]
-    lit1 = Literal blankPos () $ IntegerLiteral 1
-    lit2 = Literal blankPos () $ IntegerLiteral 2
+    cond      = Identifier blankPos () "boop" NotOperator
+    thenBlock = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    elseBlock = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ]
+    lit1      = Literal blankPos () $ IntegerLiteral 1
+    lit2      = Literal blankPos () $ IntegerLiteral 2
 
 ifElifExample :: ParsedStatement
-ifElifExample = If blankPos () cond ifThen (Just ifElif)
+ifElifExample = If blankPos () cond thenBlock (Just elifBlock)
   where
-    cond   = Identifier blankPos () "boop" NotOperator
-    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
-    ifElif = Elif blankPos
+    cond      = Identifier blankPos () "boop" NotOperator
+    thenBlock = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    elifBlock = Elif blankPos
                   (Identifier blankPos () "bap" NotOperator)
                   (RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ])
                   Nothing
@@ -113,15 +113,15 @@ ifElifExample = If blankPos () cond ifThen (Just ifElif)
     lit2 = Literal blankPos () $ IntegerLiteral 2
 
 ifElifElseExample :: ParsedStatement
-ifElifElseExample = If blankPos () cond ifThen (Just ifElif)
+ifElifElseExample = If blankPos () cond thenBlock (Just elifBlock)
   where
-    cond   = Identifier blankPos () "boop" NotOperator
-    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
-    ifElif = Elif blankPos
+    cond      = Identifier blankPos () "boop" NotOperator
+    thenBlock = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    elifBlock = Elif blankPos
                   (Identifier blankPos () "bap" NotOperator)
                   (RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ])
-                  (Just ifElse)
-    ifElse = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit3 ]
+                  (Just elseBlock)
+    elseBlock = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit3 ]
     lit1 = Literal blankPos () $ IntegerLiteral 1
     lit2 = Literal blankPos () $ IntegerLiteral 2
     lit3 = Literal blankPos () $ IntegerLiteral 3
@@ -139,4 +139,4 @@ pRawBlock :: [DefOrStatement ()] -> ParsedRawBlock
 pRawBlock xs = RawBlock blankPos () xs
 
 pBlock :: ParsedRawBlock -> ParsedStatement
-pBlock rawBlock = Block blankPos () rawBlock
+pBlock raw = Block blankPos () raw
