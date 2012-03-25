@@ -7,7 +7,6 @@ import Text.Parsec
 import Text.Parsec.Indent
 
 import Language.TheExperiment.AST.Statement
-import Language.TheExperiment.AST.Type
 import Language.TheExperiment.Parser.Type
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Expression
@@ -105,9 +104,9 @@ anIf = do
   reserved "if"
   e <- anExpr
   reservedOp ":"
-  ifThen <- aRawBlock
+  thenBlock <- aRawBlock
   ifElseOrElif <- optionMaybe anElseOrElif
-  return $ If p () e ifThen ifElseOrElif
+  return $ If p () e thenBlock ifElseOrElif
   where
     anElseOrElif = anElse <|> anElif
     anElse = do
@@ -119,9 +118,9 @@ anIf = do
       reserved "elif"
       e <- anExpr
       reservedOp ":"
-      elifThen <- aRawBlock
+      elifBlock <- aRawBlock
       elifNext <- optionMaybe anElseOrElif
-      return $ Elif pos e elifThen elifNext
+      return $ Elif pos e elifBlock elifNext
 
 aWhile :: EParser ParsedStatement
 aWhile = undefined

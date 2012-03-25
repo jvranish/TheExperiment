@@ -16,7 +16,7 @@ import Language.TheExperiment.Parser.Type
 import ETests.Utils
 
 import Test.Hspec
-import Test.Hspec.HUnit
+import Test.Hspec.HUnit()
 
 testParseTypeSignature :: IO Specs
 testParseTypeSignature = hspec aTypeSignatureSpecs
@@ -64,8 +64,6 @@ aTypeSignatureSpecs = describe "aTypeSignature" $
   where
     parsesToSig input expected = parsesTo input (TypeSignature [] expected)
     parsesTo = runTestCase "aTypeSignature" aTypeSignature
-
-
 
 testParseType :: IO Specs
 testParseType = hspec aTypeSpecs
