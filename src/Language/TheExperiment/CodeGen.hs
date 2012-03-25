@@ -153,9 +153,10 @@ genStatement (CallStmt { stmtPos = pos
 genStatement (Return { stmtPos = pos
                      , returnExpr = a }) =
     CReturn (Just $ genExpr a) (getNodeInfo pos)
-genStatement (Block { stmtPos = pos
-                    , rawBlock = block }) = genRawBlock block
+genStatement (Block { -- stmtPos = pos -- TODO: do we need this position at all?
+                    {- , -} rawBlock = block }) = genRawBlock block
 
+genElseOrElif :: ElseOrElif GenType -> CStat
 genElseOrElif (Else block) = genRawBlock block
 genElseOrElif (Elif pos cond block next) =
   CIf 
@@ -175,6 +176,7 @@ genModule (Module pos topLevels) =
     CTranslUnit (fmap genTopLevel $ filter foreignFilter topLevels) 
                 (getNodeInfo pos)
 
+foreignFilter :: Definition a -> Bool
 foreignFilter (ForeignDef {}) = False
 foreignFilter _ = True
 

@@ -1,7 +1,5 @@
 module Language.TheExperiment.Parser.Expression where
 
-import Control.Monad
-
 import Text.Parsec
 import Text.Parsec.Expr
 
