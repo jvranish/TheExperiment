@@ -106,11 +106,22 @@ anIf = do
   e <- anExpr
   reservedOp ":"
   ifThen <- aRawBlock
-  ifElse <- optionMaybe $ do
-              reserved "else"
-              reservedOp ":"
-              aRawBlock
-  return $ If p () e ifThen ifElse
+  ifElseOrElif <- optionMaybe anElseOrElif
+  return $ If p () e ifThen ifElseOrElif
+  where
+    anElseOrElif = anElse <|> anElif
+    anElse = do
+      reserved "else"
+      reservedOp ":"
+      liftM Else aRawBlock
+    anElif = do
+      pos <- getPosition
+      reserved "elif"
+      e <- anExpr
+      reservedOp ":"
+      elifThen <- aRawBlock
+      elifNext <- optionMaybe anElseOrElif
+      return $ Elif pos e elifThen elifNext
 
 aWhile :: EParser ParsedStatement
 aWhile = undefined

@@ -141,7 +141,7 @@ genStatement (If { stmtPos = pos
     CIf 
         (genExpr cond)
         (genRawBlock thenStmt)
-        (fmap genRawBlock elseStmt)
+        (fmap genElseOrElif elseStmt)
         (getNodeInfo pos)
 genStatement (While { stmtPos = pos
                     , whileCond = cond
@@ -155,6 +155,14 @@ genStatement (Return { stmtPos = pos
     CReturn (Just $ genExpr a) (getNodeInfo pos)
 genStatement (Block { stmtPos = pos
                     , rawBlock = block }) = genRawBlock block
+
+genElseOrElif (Else block) = genRawBlock block
+genElseOrElif (Elif pos cond block next) =
+  CIf 
+    (genExpr cond)
+    (genRawBlock block)
+    (fmap genElseOrElif next)
+    (getNodeInfo pos)
 
 genVarDef :: Variable GenType -> CDecl
 genVarDef (Variable { varDefPos = pos

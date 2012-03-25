@@ -53,7 +53,7 @@ data Statement a
                    , stmtNodeData :: a
                    , ifCond       :: Expr a
                    , ifThen       :: RawBlock a
-                   , ifElse       :: Maybe (RawBlock a) -- RawBlock || If in the case of elif
+                   , ifElse       :: Maybe (ElseOrElif a)
                    }
         | While    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
@@ -78,6 +78,10 @@ data RawBlock a = RawBlock { blockPos      :: SourcePos
                            , blockNodeData :: a
                            , blockBody    :: [DefOrStatement a]
                            }
+    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
+
+data ElseOrElif a = Else (RawBlock a)
+                  | Elif SourcePos (Expr a) (RawBlock a) (Maybe (ElseOrElif a))
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data DefOrStatement a = Def (Definition a)

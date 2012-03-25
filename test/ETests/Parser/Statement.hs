@@ -35,12 +35,30 @@ statementTestCases parsesTo =
               , "       bar = 10"
               , "       baz = foo"
               ] `parsesTo` (Right blockExample)
-  , it "parses an 'if'" $ -- how do we want to handle elif?
+  , it "parses an `if...`" $ 
+      unlines [ "if boop:"
+              , "  x = 1"
+              ] `parsesTo` (Right ifExample)
+  , it "parses an `if...else...`" $ -- how do we want to handle elif?
       unlines [ "if boop:"
               , "  x = 1"
               , "else:"
               , "  x = 2"
-              ] `parsesTo` (Right ifExample)
+              ] `parsesTo` (Right ifElseExample)
+  , it "parses an `if...elsif...`" $
+      unlines [ "if boop:"
+              , "  x = 1"
+              , "elif bap:"
+              , "  x = 2"
+              ] `parsesTo` (Right ifElifExample)
+  , it "parses an `if...elsif...else...`" $
+      unlines [ "if boop:"
+              , "  x = 1"
+              , "elif bap:"
+              , "  x = 2"
+              , "else:"
+              , "  x = 3"
+              ] `parsesTo` (Right ifElifElseExample)
   ]
 
 returnExample :: ParsedStatement
@@ -67,13 +85,46 @@ blockExample = pBlock rawBlock
     s3 = Stmt $ pAssign "baz" (pIdentifier "foo")
 
 ifExample :: ParsedStatement
-ifExample = pIf cond ifThen (Just ifElse)
+ifExample = If blankPos () cond ifThen Nothing
   where
-    cond   = pIdentifier "boop"
-    ifThen = pRawBlock [ Stmt $ pAssign "x" (pLiteral $ IntegerLiteral 1)]
-    ifElse = pRawBlock [ Stmt $ pAssign "x" (pLiteral $ IntegerLiteral 2)]
+    cond   = Identifier blankPos () "boop" NotOperator
+    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    lit1 = Literal blankPos () $ IntegerLiteral 1
 
+ifElseExample :: ParsedStatement
+ifElseExample = If blankPos () cond ifThen (Just ifElse)
+  where
+    cond   = Identifier blankPos () "boop" NotOperator
+    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    ifElse = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ]
+    lit1 = Literal blankPos () $ IntegerLiteral 1
+    lit2 = Literal blankPos () $ IntegerLiteral 2
 
+ifElifExample :: ParsedStatement
+ifElifExample = If blankPos () cond ifThen (Just ifElif)
+  where
+    cond   = Identifier blankPos () "boop" NotOperator
+    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    ifElif = Elif blankPos
+                  (Identifier blankPos () "bap" NotOperator)
+                  (RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ])
+                  Nothing
+    lit1 = Literal blankPos () $ IntegerLiteral 1
+    lit2 = Literal blankPos () $ IntegerLiteral 2
+
+ifElifElseExample :: ParsedStatement
+ifElifElseExample = If blankPos () cond ifThen (Just ifElif)
+  where
+    cond   = Identifier blankPos () "boop" NotOperator
+    ifThen = RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit1 ]
+    ifElif = Elif blankPos
+                  (Identifier blankPos () "bap" NotOperator)
+                  (RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit2 ])
+                  (Just ifElse)
+    ifElse = Else $ RawBlock blankPos () [ Stmt $ Assign blankPos () "x" lit3 ]
+    lit1 = Literal blankPos () $ IntegerLiteral 1
+    lit2 = Literal blankPos () $ IntegerLiteral 2
+    lit3 = Literal blankPos () $ IntegerLiteral 3
 
 pReturn :: ParsedExpr -> ParsedStatement
 pReturn expr = Return blankPos () expr
@@ -89,7 +140,3 @@ pRawBlock xs = RawBlock blankPos () xs
 
 pBlock :: ParsedRawBlock -> ParsedStatement
 pBlock rawBlock = Block blankPos () rawBlock
-
-pIf :: ParsedExpr -> ParsedRawBlock -> Maybe (ParsedRawBlock) -> ParsedStatement
-pIf cond ifThen ifElse = If blankPos () cond ifThen ifElse
-
