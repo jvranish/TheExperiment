@@ -88,21 +88,6 @@ instance TestComp (Statement ()) where
     ]
   testComp _ _ = False
 
-instance TestComp (RawBlock ()) where
-  testComp (RawBlock _ a b) (RawBlock _ a' b') = and
-    [ testComp a a'
-    , testComp b b'
-    ]
-
-instance TestComp (ElseOrElif ()) where
-  testComp (Else a) (Else a') = testComp a a'
-  testComp (Elif _ a b c) (Elif _ a' b' c') = and
-    [ testComp a a'
-    , testComp b b'
-    , testComp c c'
-    ]
-  testComp _ _ = False
-
 instance TestComp (DefOrStatement ()) where
   testComp (Def a) (Def a') = testComp a a'
   testComp (Stmt a) (Stmt a') = testComp a a'

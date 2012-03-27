@@ -38,7 +38,7 @@ data Definition a = TypeDef { defnPos      :: SourcePos
                                 , functionName   :: String
                                 , functionParams :: [Variable a]
                                 , functionRet    :: a
-                                , functionBlock  :: RawBlock a
+                                , functionBlock  :: Statement a
                                 }
   deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
@@ -52,13 +52,13 @@ data Statement a
         | If       { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , ifCond       :: Expr a
-                   , ifThen       :: RawBlock a
-                   , ifElse       :: Maybe (ElseOrElif a)
+                   , ifThen       :: Statement a
+                   , ifElse       :: Maybe (Statement a)
                    }
         | While    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
                    , whileCond    :: Expr a
-                   , whileBody    :: RawBlock a
+                   , whileBody    :: Statement a
                    }
         | CallStmt { stmtPos      :: SourcePos
                    , stmtNodeData :: a
@@ -70,19 +70,10 @@ data Statement a
                    }
         | Block    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
-                   , rawBlock     :: RawBlock a
+                   , rawBlock     :: [DefOrStatement a]
                    }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
-data RawBlock a = RawBlock { blockPos      :: SourcePos
-                           , blockNodeData :: a
-                           , blockBody    :: [DefOrStatement a]
-                           }
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
-
-data ElseOrElif a = Else (RawBlock a)
-                  | Elif SourcePos (Expr a) (RawBlock a) (Maybe (ElseOrElif a))
-    deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
 data DefOrStatement a = Def (Definition a)
                       | Stmt (Statement a)

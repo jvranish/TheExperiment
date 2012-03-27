@@ -15,7 +15,6 @@ type ParsedDefinition     = Definition ()
 type ParsedStatement      = Statement ()
 type ParsedVariable       = Variable ()
 type ParsedDefOrStatement = DefOrStatement ()
-type ParsedRawBlock       = RawBlock ()
 
 aDefinition :: EParser ParsedDefinition
 aDefinition = aTypeDef
@@ -92,11 +91,11 @@ aAssign = liftM2p Assign (try $ identifier <* reservedOp "=") anExpr
 aCallStmt :: EParser ParsedStatement
 aCallStmt = liftMp CallStmt aCall
 
-aRawBlock :: EParser ParsedRawBlock
-aRawBlock = liftMp RawBlock $ block aDefOrStatement
+aRawBlock :: EParser ParsedStatement
+aRawBlock = liftMp Block $ block aDefOrStatement
 
 aBlock :: EParser ParsedStatement
-aBlock = liftMp Block (reserved "block" >> reservedOp ":" >> aRawBlock)
+aBlock = liftMp Block (reserved "block" >> reservedOp ":" >> block aDefOrStatement)
 
 anIf :: EParser ParsedStatement
 anIf = do
@@ -112,7 +111,7 @@ anIf = do
     anElse = do
       reserved "else"
       reservedOp ":"
-      liftM Else aRawBlock
+      aRawBlock
     anElif = do
       pos <- getPosition
       reserved "elif"
@@ -120,7 +119,7 @@ anIf = do
       reservedOp ":"
       elifBlock <- aRawBlock
       elifNext <- optionMaybe anElseOrElif
-      return $ Elif pos e elifBlock elifNext
+      return $ If pos () e elifBlock elifNext
 
 aWhile :: EParser ParsedStatement
 aWhile = do
