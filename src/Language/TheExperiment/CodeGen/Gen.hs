@@ -140,30 +140,36 @@ genStatement (If { stmtPos = pos
                  , ifElse = elseStmt } ) = 
     CIf 
         (genExpr cond)
-        (genRawBlock thenStmt)
-        (fmap genElseOrElif elseStmt)
+        (genStatement thenStmt)
+        (fmap genStatement elseStmt)
         (getNodeInfo pos)
 genStatement (While { stmtPos = pos
                     , whileCond = cond
                     , whileBody = body } ) = 
-    CWhile (genExpr cond) (genRawBlock body) False (getNodeInfo pos)
+    CWhile (genExpr cond) (genStatement body) False (getNodeInfo pos)
 genStatement (CallStmt { stmtPos = pos
                        , stmtExpr = a }) =
     CExpr (Just $ genExpr a) (getNodeInfo pos)
 genStatement (Return { stmtPos = pos
                      , returnExpr = a }) =
     CReturn (Just $ genExpr a) (getNodeInfo pos)
-genStatement (Block { -- stmtPos = pos -- TODO: do we need this position at all?
-                    {- , -} rawBlock = block }) = genRawBlock block
-
-genElseOrElif :: ElseOrElif GenType -> CStat
-genElseOrElif (Else block) = genRawBlock block
-genElseOrElif (Elif pos cond block next) =
-  CIf 
-    (genExpr cond)
-    (genRawBlock block)
-    (fmap genElseOrElif next)
-    (getNodeInfo pos)
+genStatement (Block { stmtPos = pos
+                    , blockBody = block }) =
+        CCompound 
+            [] 
+            (varDefs' ++ stmts')
+            (getNodeInfo pos)
+    -- #TODO is there a nice way to restrict this to only be vardefs?
+    -- #TODO we also only currently support variable declarations without 
+    --    initializers
+    where
+        (varDefs, stmts) = partitionEithers $ fmap defOrStmtToEither block
+        stmts'   = fmap (CBlockStmt . genStatement) stmts
+        varDefs' = [CBlockDecl $ genVarDecl vPos name t | 
+                        (VariableDef { defnPos = vPos
+                                     , defnNodeData = t
+                                     , variable = Variable { varName = name } } )
+                        <- varDefs]
 
 genVarDef :: Variable GenType -> CDecl
 genVarDef (Variable { varDefPos = pos
@@ -201,7 +207,7 @@ genTypeDef pos name t =
     genDecl pos name t [CStorageSpec (CTypedef (getNodeInfo pos))]
 
 genFuncDef :: SourcePos -> String -> [Variable GenType] -> GenBasicType
-           -> RawBlock GenType -> CFunDef
+           -> Statement GenType -> CFunDef
 genFuncDef pos name params retType stmt =
     CFunDef [CTypeSpec retType'] declr [] stmt' (getNodeInfo pos)
     where
@@ -214,27 +220,7 @@ genFuncDef pos name params retType stmt =
                         Nothing
                         []
                         (getNodeInfo pos)
-        stmt'     = genRawBlock stmt
-
-genRawBlock :: RawBlock GenType -> CStat
-genRawBlock (RawBlock { blockPos  = pos
-                      , blockBody = block }) =
-        CCompound 
-            [] 
-            (varDefs' ++ stmts')
-            (getNodeInfo pos)
-    -- #TODO is there a nice way to restrict this to only be vardefs?
-    -- #TODO we also only currently support variable declarations without 
-    --    initializers
-    where
-        (varDefs, stmts) = partitionEithers $ fmap defOrStmtToEither block
-        stmts'   = fmap (CBlockStmt . genStatement) stmts
-        varDefs' = [CBlockDecl $ genVarDecl vPos name t | 
-                        (VariableDef { defnPos = vPos
-                                     , defnNodeData = t
-                                     , variable = Variable { varName = name } } )
-                        <- varDefs]
-
+        stmt'     = genStatement stmt
 
 
 genIdent :: SourcePos -> String -> Ident

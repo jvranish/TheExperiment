@@ -70,7 +70,7 @@ data Statement a
                    }
         | Block    { stmtPos      :: SourcePos
                    , stmtNodeData :: a
-                   , rawBlock     :: [DefOrStatement a]
+                   , blockBody    :: [DefOrStatement a]
                    }
     deriving (Show, Eq, Ord, Functor, Foldable, Traversable)
 
