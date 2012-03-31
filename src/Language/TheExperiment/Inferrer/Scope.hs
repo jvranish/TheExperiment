@@ -97,6 +97,9 @@ scopeDefinition env sigs a = case a of
 
   where
     withSigFor x name = x `updateSig` lookup name sigs
+      --where
+      --  temp (Just z) = Just z
+      --  temp (Nothing) = Just $ error name
     a' = applyScope env a
 
 promoteVar :: Variable a -> Definition a
@@ -105,7 +108,8 @@ promoteVar var@(Variable pos nodeData _) = VariableDef pos nodeData var
 scopeModule :: Env -> Module (TypeRef, NodeId) -> Module NodeData
 scopeModule env (Module pos defs) = let 
     -- we can do this because laziness is awesome
-    defs' = fmap (scopeDefinition (localEnv env Nothing defs') []) defs
+    defs' = fmap (scopeDefinition (localEnv env Nothing defs') sigTable) defs
     in Module pos defs'
-
+  where
+    sigTable = concat $  [zip names $ repeat sig | DefSignature _ _ names sig <- defs]
 

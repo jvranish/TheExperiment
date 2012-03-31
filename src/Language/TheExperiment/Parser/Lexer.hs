@@ -82,6 +82,9 @@ whiteSpace = T.whiteSpace lexer
 commaSep1 :: EParser a -> EParser [a]
 commaSep1 = T.commaSep1 lexer
 
+commaSep :: EParser a -> EParser [a]
+commaSep = T.commaSep lexer
+
 symbol :: String -> EParser String
 symbol = T.symbol lexer
 

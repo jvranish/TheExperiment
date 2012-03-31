@@ -1,5 +1,7 @@
 module Language.TheExperiment.Compile where
 
+import System.FilePath
+
 import Text.PrettyPrint
 
 import Language.C.Pretty
@@ -19,9 +21,5 @@ compile filename = do
       Right (warns, genM) -> do
         putStrLn $ showWarnings warns
         let cCode = render $ pretty $ genModule genM
-        writeFile "output.c" cCode
-
---infer :: Module a -> ErrorM.ErrorM (Module GenType)
---parseFile :: String -> IO (Either ParseError (Module ()))
---genModule :: Module GenType -> CTranslUnit
+        writeFile (replaceExtension filename "c") cCode
 

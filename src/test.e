@@ -19,7 +19,7 @@ def fact(a):
   else:
     return a * fact(a-1)
 
-def main(a):
+def main():
   var x
   x = 9
   return fact(x)

@@ -58,7 +58,7 @@ anOpDef = anOpType "infixr"  InR  (flip Infix AssocRight . liftM call2)
           return $ Identifier { exprPos = pos
                               , exprNodeData = ()
                               -- #TODO find a more general solution here:
-                              , idName = "Builtin." ++ name
+                              , idName = name
                               , opFormat = fixityCons precedence opName }
       return (opCons opParser, precedence)
     call f a    = call' f [a]

@@ -53,23 +53,23 @@ anExprTestCases parsesTo =
                                         [ pIdentifier "a"
                                         , pIdentifier "b"])
   , it "parses a basic left assoc infix operator" $
-      ("a + b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
+      ("a + b") `parsesTo` (Right $ pCall (pOperator "add" $ InL 4 "+") 
                                                 [ pIdentifier "a"
                                                 , pIdentifier "b"])
   , it "parses a basic prefix operator" $
-      ("-b") `parsesTo` (Right $ pCall (pOperator "Builtin.neg" $ Pre 5 "-") 
+      ("-b") `parsesTo` (Right $ pCall (pOperator "neg" $ Pre 5 "-") 
                                                 [ pIdentifier "b"])
   , it "parses a basic postfix operator" $
-      ("b++") `parsesTo` (Right $ pCall (pOperator "Builtin.inc" $ Post 5 "++") 
+      ("b++") `parsesTo` (Right $ pCall (pOperator "inc" $ Post 5 "++") 
                                                 [ pIdentifier "b"])
   , it "parses a basic prefix with infix assoc infix operator" $
-      ("a + -b") `parsesTo` (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
+      ("a + -b") `parsesTo` (Right $ pCall (pOperator "add" $ InL 4 "+") 
                                                 [ pIdentifier "a"
-                                                , pCall (pOperator "Builtin.neg" $ Pre 5 "-") 
+                                                , pCall (pOperator "neg" $ Pre 5 "-") 
                                                   [ pIdentifier "b"]])
   , it "parses a basic left assoc infix operator with function call" $
       ("a + foo(a, b)") `parsesTo` 
-        (Right $ pCall (pOperator "Builtin.add" $ InL 4 "+") 
+        (Right $ pCall (pOperator "add" $ InL 4 "+") 
                     [ pIdentifier "a"
                     , pCall (pIdentifier "foo")
                         [ pIdentifier "a"

@@ -38,7 +38,7 @@ aForeignDef = liftM2p ForeignDef (reserved "foreign" >> lowerIdent) stringLitera
  
 aFunctionDef :: EParser ParsedDefinition
 aFunctionDef = liftM4p FunctionDef (reserved "def" >> lowerIdent)
-                                   (option [] $ parens $ commaSep1 aVariable)
+                                   (option [] $ parens $ commaSep aVariable)
                                    (return ())
                                    (reservedOp ":" >> aRawBlock)
 
