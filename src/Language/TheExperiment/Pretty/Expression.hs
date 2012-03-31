@@ -13,7 +13,7 @@ import Language.TheExperiment.Pretty.Literal
 --  deriving (Show, Ord, Eq)
 
 
-prettyExpression :: ParsedExpr -> Doc
+prettyExpression :: Expr a -> Doc
 prettyExpression = prettyExpression' 0
   where
     prettyExpression' context expr = case expr of

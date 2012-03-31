@@ -53,7 +53,7 @@ getAndModifyT f = do
 
 
 makeSupply :: [[a]] -> [[a]] -> [[a]]
-makeSupply inits tails = let vars = inits ++ (liftM2 (++) vars tails) in vars
+makeSupply inits' tails = let vars = inits' ++ (liftM2 (++) vars tails) in vars
 
 varNames :: [String]
 varNames = makeSupply (words "a b c d e f g h i j k") (words "1 2 3 4 5")
@@ -64,3 +64,16 @@ genSym = do
   putT xs
   return x
 
+pair :: (a -> b) -> a -> (b, a)
+pair f a = (f a, a)
+
+selectAndPair :: (a -> Maybe b) -> [a] -> [(b, a)]
+selectAndPair f xs = [(b, a) | (Just b, a) <- fmap (pair f) xs]
+
+-- The inits function in the version of haskell that I'm using currently
+-- does not appear to have the correct strictness properties. So I'm using
+-- my own
+inits                   :: [a] -> [[a]]
+inits xs                =  [] : case xs of
+                                  []      -> []
+                                  x : xs' -> map (x :) (inits xs')

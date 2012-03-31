@@ -4,6 +4,8 @@
           #-}
 module Language.TheExperiment.Inferrer.Type where
 
+import Language.TheExperiment.CodeGen.Type
+
 import Data.Foldable
 import Data.Traversable
 import qualified Data.Map as Map
