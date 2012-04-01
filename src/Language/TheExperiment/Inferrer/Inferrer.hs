@@ -28,13 +28,13 @@ import Text.PrettyPrint
 import qualified Data.Map as Map
 
 import Language.TheExperiment.Misc
-import Language.TheExperiment.AST.Statement
-import Language.TheExperiment.AST.Expression
-import Language.TheExperiment.AST.Module
+import Language.TheExperiment.Parser.AST.Statement
+import Language.TheExperiment.Parser.AST.Expression
+import Language.TheExperiment.Parser.AST.Module
 
 import Language.TheExperiment.Pretty.Expression
 
-import qualified Language.TheExperiment.AST.Type as AST
+import qualified Language.TheExperiment.Parser.AST.Type as ParserAST
 
 import Language.TheExperiment.Inferrer.Type
 import Language.TheExperiment.Inferrer.InferrerM
@@ -73,27 +73,27 @@ infer m@(Module pos _) = runInferrer $ do
 
 
 
-convertTypeSig :: AST.TypeSignature -> Inferrer TypeRef
-convertTypeSig (AST.TypeSignature constraints t) = flip evalStateT Map.empty $ do
+convertTypeSig :: ParserAST.TypeSignature -> Inferrer TypeRef
+convertTypeSig (ParserAST.TypeSignature constraints t) = flip evalStateT Map.empty $ do
   table <- mapM makeConstraint constraints
   put $ Map.fromList table
   convertParsedType t
 
-makeConstraint :: AST.TypeConstraint
+makeConstraint :: ParserAST.TypeConstraint
                -> StateT (Map.Map String TypeRef) Inferrer (String, TypeRef)
-makeConstraint (AST.TypeConstraint name constraints) = do
+makeConstraint (ParserAST.TypeConstraint name constraints) = do
   constraintRefs <- mapM convertParsedType constraints
   var <- lift $ newType $ Var (Just name) constraintRefs
   return (name, var)
 
-convertParsedType :: AST.ParsedType
+convertParsedType :: ParserAST.ParsedType
                   -> StateT (Map.Map String TypeRef) Inferrer TypeRef
-convertParsedType (AST.TypeName { AST.typeName = name }) 
+convertParsedType (ParserAST.TypeName { ParserAST.typeName = name }) 
 -- #TODO add more stuff here (maybe use Read?)
   | name == "UInt32" = lift $ newType $ Std $ IntType UInt32
   | name == "Bool" = lift $ newType $ Std $ SBool
   | otherwise = lift $ newType $ TypeName name
-convertParsedType (AST.TypeVariable { AST.typeVarName = name }) = do
+convertParsedType (ParserAST.TypeVariable { ParserAST.typeVarName = name }) = do
   StateT $ \table -> do
     case Map.lookup name table of
       Just ref -> return (ref, table)
@@ -102,8 +102,8 @@ convertParsedType (AST.TypeVariable { AST.typeVarName = name }) = do
         return (ref, Map.insert name ref table)
 -- #TODO
 -- convertParsedType (TypeCall {  })  unsupported for the moment
-convertParsedType (AST.FunctionType { AST.typeArgs = args 
-                                    , AST.returnType  = ret }) = do
+convertParsedType (ParserAST.FunctionType { ParserAST.typeArgs = args 
+                                    , ParserAST.returnType  = ret }) = do
   argRefs <- mapM convertParsedType args
   retRef <- convertParsedType ret
   lift $ newType $ Func argRefs retRef

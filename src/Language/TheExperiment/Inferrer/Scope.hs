@@ -7,9 +7,9 @@ import Control.Monad
 import qualified Data.Map as Map
 
 import Language.TheExperiment.Inferrer.InferrerM
-import Language.TheExperiment.AST.Statement
-import Language.TheExperiment.AST.Module
-import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.AST.Statement
+import Language.TheExperiment.Parser.AST.Module
+import Language.TheExperiment.Parser.AST.Type
 import Language.TheExperiment.Misc
 
 type Def = Definition NodeData

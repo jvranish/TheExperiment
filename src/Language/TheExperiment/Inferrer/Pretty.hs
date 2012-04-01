@@ -28,7 +28,7 @@ import Language.TheExperiment.Pretty.Type
 import Language.TheExperiment.Misc
 
 
-import qualified Language.TheExperiment.AST.Type as AST
+import qualified Language.TheExperiment.Parser.AST.Type as ParserAST
 
 import Prelude hiding (mapM)
 
@@ -59,11 +59,11 @@ prettyTypeRef :: TypeRef -> Inferrer Doc
 prettyTypeRef t = liftM text $ showType t
 
 -- #TODO this needs major cleanup
-convertToParsedType (Y (EitherF (Left name))) = AST.TypeVariable undefined name
-convertToParsedType (Y (EitherF (Right (TypeName name)))) =  AST.TypeName undefined name
-convertToParsedType (Y (EitherF (Right (Var (Just name) _)))) =  AST.TypeVariable undefined name
-convertToParsedType (Y (EitherF (Right (Std stdType)))) =  AST.TypeName undefined (show stdType)
-convertToParsedType (Y (EitherF (Right (Func params ret)))) =  AST.FunctionType undefined (fmap convertToParsedType params) (convertToParsedType ret)
+convertToParsedType (Y (EitherF (Left name))) = ParserAST.TypeVariable undefined name
+convertToParsedType (Y (EitherF (Right (TypeName name)))) =  ParserAST.TypeName undefined name
+convertToParsedType (Y (EitherF (Right (Var (Just name) _)))) =  ParserAST.TypeVariable undefined name
+convertToParsedType (Y (EitherF (Right (Std stdType)))) =  ParserAST.TypeName undefined (show stdType)
+convertToParsedType (Y (EitherF (Right (Func params ret)))) =  ParserAST.FunctionType undefined (fmap convertToParsedType params) (convertToParsedType ret)
 
 
 showType :: TypeRef -> Inferrer String

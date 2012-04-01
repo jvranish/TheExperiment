@@ -41,10 +41,10 @@ Library
         Control.Monad.ErrorM
         Control.Monad.GraphT
         Language.TheExperiment
-        Language.TheExperiment.AST
-        Language.TheExperiment.AST.Expression
-        Language.TheExperiment.AST.Statement
-        Language.TheExperiment.AST.Type
+        Language.TheExperiment.Parser.AST
+        Language.TheExperiment.Parser.AST.Expression
+        Language.TheExperiment.Parser.AST.Statement
+        Language.TheExperiment.Parser.AST.Type
         Language.TheExperiment.CodeGen.Builtin
         Language.TheExperiment.CodeGen.Gen
         Language.TheExperiment.CodeGen.Type

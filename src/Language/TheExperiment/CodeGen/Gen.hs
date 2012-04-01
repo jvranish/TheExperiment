@@ -28,7 +28,7 @@ import Language.C.Data.Ident
 import Language.C.Data.Node
 import Language.C.Data.Position
 
-import Language.TheExperiment.AST
+import Language.TheExperiment.Parser.AST
 import Language.TheExperiment.CodeGen.Builtin
 import Language.TheExperiment.CodeGen.Type
 
