@@ -1,2 +1,2 @@
 #!/bin/sh
-runhaskell -isrc -itest test/test_runner.hs
+runhaskell -Wall -isrc -itest test/test_runner.hs
