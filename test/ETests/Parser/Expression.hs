@@ -13,7 +13,7 @@ import Text.Parsec.Error
 
 import Test.Hspec
 
-import Language.TheExperiment.AST
+import Language.TheExperiment.Parser.AST
 import Language.TheExperiment.Parser
 
 import ETests.Parser.Literal

@@ -9,7 +9,7 @@ import Control.Applicative
 
 import Text.Parsec
 
-import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.AST.Type
 import Language.TheExperiment.Parser
 import Language.TheExperiment.Parser.Type
 

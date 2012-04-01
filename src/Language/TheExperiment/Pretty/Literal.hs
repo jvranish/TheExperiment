@@ -7,7 +7,7 @@ import Numeric
 
 import Text.PrettyPrint.HughesPJ
 
-import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.Parser.AST.Expression
 
 prettyLiteral :: Literal -> Doc
 prettyLiteral (StringLiteral s) = doubleQuotes $ text s

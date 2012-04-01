@@ -9,7 +9,7 @@ import qualified Text.Parsec.Token as T
 import Control.Monad
 import qualified Control.Monad.Trans.State as S
 
-import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.Parser.AST.Expression
 
 type ParserOperator = Operator String Operators (S.State SourcePos) (Expr ())
 newtype Operators = Operators [(ParserOperator, Rational)]

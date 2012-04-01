@@ -5,7 +5,7 @@ module Language.TheExperiment.Pretty.Type
 
 import Text.PrettyPrint.HughesPJ
 
-import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.AST.Type
 
 data ParenContext = NoneC | FunctionTypeC | TypeCallC
   deriving (Show, Ord, Eq)

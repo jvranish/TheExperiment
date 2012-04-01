@@ -10,7 +10,7 @@ import Control.Monad
 import Text.Parsec
 
 import Language.TheExperiment.Parser.Lexer
-import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.AST.Type
  
 
 aTypeSignature :: EParser TypeSignature

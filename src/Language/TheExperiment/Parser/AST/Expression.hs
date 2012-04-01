@@ -3,7 +3,7 @@
           , DeriveFoldable
           , DeriveTraversable
           #-}
-module Language.TheExperiment.AST.Expression where
+module Language.TheExperiment.Parser.AST.Expression where
 
 import Text.Parsec.Pos
 

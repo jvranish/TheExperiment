@@ -11,7 +11,7 @@ import ETests.Utils
 -- import Text.Parsec.Indent
 import Text.Parsec.Error
 
-import Language.TheExperiment.AST
+import Language.TheExperiment.Parser.AST
 import Language.TheExperiment.Parser
 -- import Language.TheExperiment.Parser.Module
 -- import Language.TheExperiment.Parser.Statement

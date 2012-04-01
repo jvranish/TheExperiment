@@ -6,7 +6,7 @@ import Control.Monad
 import Text.Parsec
 import Text.Parsec.Indent
 
-import Language.TheExperiment.AST.Statement
+import Language.TheExperiment.Parser.AST.Statement
 import Language.TheExperiment.Parser.Type
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Expression

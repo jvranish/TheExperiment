@@ -10,7 +10,7 @@ import Numeric
 import Data.Maybe
 import Text.Parsec
 
-import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.Parser.AST.Expression
 import Language.TheExperiment.Parser.Lexer
 
 readStdInt :: Num a => a -> String -> a

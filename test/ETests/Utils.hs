@@ -6,9 +6,9 @@ import Control.Monad (unless)
 import Text.Parsec.Pos
 import Text.Parsec.Error
 
-import Language.TheExperiment.AST.Type
-import Language.TheExperiment.AST.Expression
-import Language.TheExperiment.AST.Statement
+import Language.TheExperiment.Parser.AST.Type
+import Language.TheExperiment.Parser.AST.Expression
+import Language.TheExperiment.Parser.AST.Statement
 
 import Test.HUnit
 

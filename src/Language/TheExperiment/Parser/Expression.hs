@@ -6,7 +6,7 @@ import Text.Parsec.Expr
 import Data.List
 import Data.Function
 
-import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.Parser.AST.Expression
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Literal
 

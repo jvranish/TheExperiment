@@ -1,10 +1,9 @@
-
 {-#Language GeneralizedNewtypeDeriving
           , DeriveFunctor
           , DeriveFoldable
           , DeriveTraversable
           #-}
-module Language.TheExperiment.AST.Type where
+module Language.TheExperiment.Parser.AST.Type where
 
 import Text.Parsec.Pos
 

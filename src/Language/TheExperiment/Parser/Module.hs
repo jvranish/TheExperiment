@@ -1,4 +1,3 @@
-
 module Language.TheExperiment.Parser.Module where
 
 import Control.Monad
@@ -6,8 +5,8 @@ import Control.Monad
 import Text.Parsec
 import Text.Parsec.Expr
 
-import Language.TheExperiment.AST.Module
-import Language.TheExperiment.AST.Expression
+import Language.TheExperiment.Parser.AST.Module
+import Language.TheExperiment.Parser.AST.Expression
 import Language.TheExperiment.Parser.Lexer
 import Language.TheExperiment.Parser.Statement
 

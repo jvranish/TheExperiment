@@ -4,8 +4,7 @@ module Language.TheExperiment.Pretty.Expression
 
 import Text.PrettyPrint.HughesPJ
 
-import Language.TheExperiment.AST.Expression
-import Language.TheExperiment.Parser.Expression
+import Language.TheExperiment.Parser.AST.Expression
 import Language.TheExperiment.Pretty.Literal
 
 

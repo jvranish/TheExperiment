@@ -3,15 +3,15 @@
           , DeriveFoldable
           , DeriveTraversable
           #-}
-module Language.TheExperiment.AST.Statement where
+module Language.TheExperiment.Parser.AST.Statement where
 
 import Text.Parsec.Pos
 
 import Data.Foldable
 import Data.Traversable
 
-import Language.TheExperiment.AST.Expression
-import Language.TheExperiment.AST.Type
+import Language.TheExperiment.Parser.AST.Expression
+import Language.TheExperiment.Parser.AST.Type
 
 data Definition a = TypeDef { defnPos      :: SourcePos
                             , defnNodeData :: a
