@@ -44,7 +44,7 @@ prettyExpressionSpecs = describe "prettyExpression" $ prettyExpressionTestCases 
   where
     prettyFrom expected input = 
         case runEParser "tests" (opDefs ++ input) (parseLex $ many anOpDef >>= putState . Operators >> anExpr) of
-          Right result -> eTestAssertEqual "prettyType" 
+          Right result -> eTestAssertEqual "prettyExpression" 
                             expected
                             (render $ prettyExpression result)
           Left e -> error $ "fix your stupid test: " ++ show e
